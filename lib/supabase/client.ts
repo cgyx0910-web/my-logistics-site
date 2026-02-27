@@ -65,6 +65,10 @@ async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promis
     const res = await fetch(input, merged);
     clearTimeout(timeoutId);
     userSignal?.removeEventListener?.("abort", onAbort);
+    const url = String(typeof input === "object" && "href" in input ? input.href : input);
+    if (url.includes("/auth/")) {
+      console.info("[Supabase 代理] Auth 请求响应", res.status, url.slice(-60));
+    }
     if (res.status >= 500) {
       lastProxyErrorDetail = null;
       try {
