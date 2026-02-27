@@ -92,7 +92,8 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
       { status: 400 }
     );
   }
-  const targetUrl = `${SUPABASE_URL!.replace(/\/$/, "")}/${pathSegments}${search}`;
+  const base = SUPABASE_URL!.replace(/\/+$/, "");
+  const targetUrl = `${base}/${pathSegments}${search}`;
 
   const headers = new Headers();
   headers.set("apikey", SUPABASE_ANON_KEY!);
@@ -121,7 +122,11 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
     const responseHeaders = new Headers();
     res.headers.forEach((value, key) => {
       if (key.toLowerCase() === "set-cookie") {
-        (res.headers.getSetCookie?.() ?? [value]).forEach((c) => responseHeaders.append("set-cookie", c));
+        const cookies = res.headers.getSetCookie?.() ?? [value];
+        cookies.forEach((c) => {
+          const rewritten = c.replace(/\s*Domain=[^;]+/gi, "");
+          responseHeaders.append("set-cookie", rewritten);
+        });
       } else {
         responseHeaders.set(key, value);
       }

@@ -78,6 +78,9 @@ async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promis
 }
 
 export function createBrowserSupabase() {
+  if (typeof window === "undefined") {
+    throw new Error("createBrowserSupabase 仅用于浏览器端，服务端请使用 lib/supabase/server 的 createServerSupabase / createServerSupabaseFromRequest");
+  }
   const supabaseUrl = getSupabaseUrl();
   if (!supabaseUrl) {
     throw new Error(
