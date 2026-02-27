@@ -36,6 +36,21 @@ export function clearLastProxyErrorDetail(): void {
   lastProxyErrorDetail = null;
 }
 
+/** 浏览器端检测代理是否可达（GET /api/supabase），用于登录失败时给出更明确提示 */
+export async function checkProxyReachable(): Promise<{ ok: boolean; message: string }> {
+  if (typeof window === "undefined") return { ok: false, message: "仅支持浏览器端" };
+  try {
+    const url = `${window.location.origin}/api/supabase`;
+    const res = await fetch(url, { method: "GET", signal: AbortSignal.timeout(8000) });
+    const data = (await res.json()) as { ok?: boolean; message?: string; error?: string; details?: string };
+    if (res.ok && data.ok) return { ok: true, message: "代理可达" };
+    return { ok: false, message: data.details ?? data.error ?? data.message ?? `HTTP ${res.status}` };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, message: msg };
+  }
+}
+
 /** 自定义 fetch：记录 502/5xx 及未收到响应时的错误，便于登录页展示 */
 async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   try {

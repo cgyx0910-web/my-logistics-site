@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import type { User } from "@supabase/supabase-js";
-import { createBrowserSupabase, clearLastProxyErrorDetail, getLastProxyErrorDetail } from "@/lib/supabase/client";
+import { createBrowserSupabase, clearLastProxyErrorDetail, getLastProxyErrorDetail, checkProxyReachable } from "@/lib/supabase/client";
 
 export type Profile = {
   id: string;
@@ -154,11 +154,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (/failed to fetch|fetch failed|network error/i.test(msg)) {
         const detail = getLastProxyErrorDetail();
-        return {
-          error: detail
-            ? `代理异常：${detail}`
-            : "登录请求失败（未收到代理响应）。请按 F12 → Network 再点登录，查看对 /api/supabase/... 的请求是「失败」还是 502，并检查网络/VPN/防火墙。",
-        };
+        if (detail) return { error: `代理异常：${detail}` };
+        const proxyCheck = await checkProxyReachable();
+        const hint = proxyCheck.ok
+          ? "代理可达，但登录请求未成功（可能被浏览器/扩展拦截或超时，请尝试无痕模式或查看 Network 面板）。"
+          : `代理不可达：${proxyCheck.message}。请检查网络、Vercel 部署与环境变量。`;
+        return { error: `登录请求失败。${hint}` };
       }
       return { error: msg };
     },
