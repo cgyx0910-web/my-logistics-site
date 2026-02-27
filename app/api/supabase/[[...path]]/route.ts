@@ -81,7 +81,7 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
       { status: 400 }
     );
   }
-  const targetUrl = `${SUPABASE_URL.replace(/\/$/, "")}/${pathSegments}${search}`;
+  const targetUrl = `${SUPABASE_URL!.replace(/\/$/, "")}/${pathSegments}${search}`;
 
   const headers = new Headers();
   headers.set("apikey", SUPABASE_ANON_KEY!);
