@@ -143,6 +143,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [supabase, fetchProfile]);
 
+  const getNetworkErrorHint = useCallback(async (label: string) => {
+    const detail = getLastProxyErrorDetail();
+    if (detail) return `代理异常：${detail}`;
+    const proxyCheck = await checkProxyReachable();
+    if (proxyCheck.ok) {
+      return `${label}请求失败。代理可达但请求未成功（可能被拦截或超时）。请将 Vercel 项目 Region 改为 Singapore/Hong Kong、用无痕模式重试，或查看 Network 面板。`;
+    }
+    return `${label}请求失败。代理不可达：${proxyCheck.message}。请检查网络与 Vercel 环境变量。`;
+  }, []);
+
   const signIn = useCallback(
     async (email: string, password: string) => {
       clearLastProxyErrorDetail();
@@ -170,16 +180,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [supabase, getNetworkErrorHint]
   );
-
-  const getNetworkErrorHint = useCallback(async (label: string) => {
-    const detail = getLastProxyErrorDetail();
-    if (detail) return `代理异常：${detail}`;
-    const proxyCheck = await checkProxyReachable();
-    if (proxyCheck.ok) {
-      return `${label}请求失败。代理可达但请求未成功（可能被拦截或超时）。请将 Vercel 项目 Region 改为 Singapore/Hong Kong、用无痕模式重试，或查看 Network 面板。`;
-    }
-    return `${label}请求失败。代理不可达：${proxyCheck.message}。请检查网络与 Vercel 环境变量。`;
-  }, []);
 
   const signUp = useCallback(
     async (email: string, password: string, fullName?: string) => {
