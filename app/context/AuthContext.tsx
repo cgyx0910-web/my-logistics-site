@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import type { User } from "@supabase/supabase-js";
-import { createBrowserSupabase, clearLastProxyErrorDetail, getLastProxyErrorDetail, checkProxyReachable } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 
 export type Profile = {
   id: string;
@@ -143,28 +143,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [supabase, fetchProfile]);
 
-  const getNetworkErrorHint = useCallback(async (label: string) => {
-    const detail = getLastProxyErrorDetail();
-    if (detail) return `代理异常：${detail}`;
-    const proxyCheck = await checkProxyReachable();
-    if (proxyCheck.ok) {
-      return `${label}请求失败。代理可达但请求未成功（可能被拦截或超时）。请将 Vercel 项目 Region 改为 Singapore/Hong Kong、用无痕模式重试，或查看 Network 面板。`;
-    }
-    return `${label}请求失败。代理不可达：${proxyCheck.message}。请检查网络与 Vercel 环境变量。`;
-  }, []);
-
   const signIn = useCallback(
     async (email: string, password: string) => {
-      clearLastProxyErrorDetail();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         console.dir(
-          {
-            name: "Supabase 登录错误",
-            status: (error as { status?: number }).status,
-            message: error.message,
-            __error: error,
-          },
+          { name: "Supabase 登录错误", status: (error as { status?: number }).status, message: error.message, __error: error },
           { depth: 4 }
         );
       }
@@ -173,17 +157,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (msg.includes("Email not confirmed") || /email_not_confirmed/i.test(msg)) {
         return { error: "邮箱尚未确认，请查收邮件并点击确认链接后再登录。若需注册后直接登录，可在 Supabase Dashboard 关闭「Confirm email」。" };
       }
-      if (/failed to fetch|fetch failed|network error/i.test(msg)) {
-        return { error: await getNetworkErrorHint("登录") };
-      }
       return { error: msg };
     },
-    [supabase, getNetworkErrorHint]
+    [supabase]
   );
 
   const signUp = useCallback(
     async (email: string, password: string, fullName?: string) => {
-      clearLastProxyErrorDetail();
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -196,13 +176,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
       }
       if (!error) return { error: null };
-      const msg = error.message ?? "";
-      if (/failed to fetch|fetch failed|network error/i.test(msg)) {
-        return { error: await getNetworkErrorHint("注册") };
-      }
-      return { error: msg };
+      return { error: error.message ?? null };
     },
-    [supabase, getNetworkErrorHint]
+    [supabase]
   );
 
   const signOut = useCallback(async () => {
