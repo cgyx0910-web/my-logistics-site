@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
           error: detail
             ? `代理异常：${detail}`
-            : "登录请求失败（网络或代理异常）。请打开控制台查看 [Supabase 代理 502] 或检查 Vercel 环境变量是否已配置并重新部署。",
+            : "登录请求失败（未收到代理响应）。请按 F12 → Network 再点登录，查看对 /api/supabase/... 的请求是「失败」还是 502，并检查网络/VPN/防火墙。",
         };
       }
       return { error: msg };

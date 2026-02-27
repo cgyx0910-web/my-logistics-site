@@ -56,8 +56,8 @@ async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promis
     return res;
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    lastProxyErrorDetail = msg;
-    console.error("[Supabase 代理] 请求未完成", msg);
+    lastProxyErrorDetail = `请求未完成：${msg}（可能超时、断网或被拦截，请检查 Network 面板）`;
+    console.error("[Supabase 代理] 请求未完成", msg, e);
     throw e;
   }
 }
