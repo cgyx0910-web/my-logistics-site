@@ -95,7 +95,9 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
   const base = SUPABASE_URL!.replace(/\/+$/, "");
   const targetUrl = `${base}/${pathSegments}${search}`;
 
+  const supabaseHost = new URL(base).host;
   const headers = new Headers();
+  headers.set("Host", supabaseHost);
   headers.set("apikey", SUPABASE_ANON_KEY!);
   headers.set("Authorization", request.headers.get("Authorization") ?? `Bearer ${SUPABASE_ANON_KEY}`);
 
@@ -127,6 +129,7 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
           const rewritten = c.replace(/\s*Domain=[^;]+/gi, "");
           responseHeaders.append("set-cookie", rewritten);
         });
+        /* Auth 的 Set-Cookie 已去掉 Domain，使 Cookie 绑定当前站点，middleware 不匹配 /api 故不会拦截 */
       } else {
         responseHeaders.set(key, value);
       }

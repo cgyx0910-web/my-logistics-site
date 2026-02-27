@@ -147,6 +147,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (email: string, password: string) => {
       clearLastProxyErrorDetail();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.dir(
+          {
+            name: "Supabase 登录错误",
+            status: (error as { status?: number }).status,
+            message: error.message,
+            __error: error,
+          },
+          { depth: 4 }
+        );
+      }
       if (!error) return { error: null };
       const msg = error.message ?? "";
       if (msg.includes("Email not confirmed") || /email_not_confirmed/i.test(msg)) {

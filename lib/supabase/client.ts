@@ -105,6 +105,8 @@ export function createBrowserSupabase() {
   return createClient<Database>(supabaseUrl, supabaseAnonKey!, {
     global: { fetch: customFetch },
     auth: {
+      persistSession: true,
+      autoRefreshToken: true,
       lock: noOpLock,
     },
   });
