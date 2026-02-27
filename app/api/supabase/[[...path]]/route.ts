@@ -104,7 +104,7 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
     if (value) headers.set(name, value);
   });
 
-  const PROXY_TIMEOUT_MS = 25_000;
+  const PROXY_TIMEOUT_MS = 9_000;
 
   try {
     const controller = new AbortController();
@@ -137,7 +137,7 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
   } catch (err) {
     const isAbort = err instanceof Error && err.name === "AbortError";
     const message = isAbort
-      ? `请求 Supabase 超时（${PROXY_TIMEOUT_MS / 1000} 秒），请检查网络或稍后重试`
+      ? `请求 Supabase 超时（${PROXY_TIMEOUT_MS / 1000} 秒）。Vercel 免费版函数约 10 秒限制，建议：项目 Settings → General → Region 改为 Singapore 或 Hong Kong 后重试。`
       : err instanceof Error
         ? err.message
         : "Supabase proxy request failed";
