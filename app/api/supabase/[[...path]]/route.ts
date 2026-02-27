@@ -93,12 +93,19 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
     if (value) headers.set(name, value);
   });
 
+  const PROXY_TIMEOUT_MS = 25_000;
+
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PROXY_TIMEOUT_MS);
+    const body = ["GET", "HEAD", "OPTIONS"].includes(request.method) ? undefined : await request.text();
     const res = await fetch(targetUrl, {
       method: request.method,
       headers,
-      body: ["GET", "HEAD", "OPTIONS"].includes(request.method) ? undefined : await request.text(),
+      body,
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const responseHeaders = new Headers();
     res.headers.forEach((value, key) => {
@@ -115,7 +122,12 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
       headers: responseHeaders,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Supabase proxy request failed";
+    const isAbort = err instanceof Error && err.name === "AbortError";
+    const message = isAbort
+      ? `请求 Supabase 超时（${PROXY_TIMEOUT_MS / 1000} 秒），请检查网络或稍后重试`
+      : err instanceof Error
+        ? err.message
+        : "Supabase proxy request failed";
     console.error("[Supabase proxy error]", message, err);
     return NextResponse.json(
       { error: "Supabase proxy request failed", details: message },

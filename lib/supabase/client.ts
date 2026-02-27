@@ -36,23 +36,30 @@ export function clearLastProxyErrorDetail(): void {
   lastProxyErrorDetail = null;
 }
 
-/** 自定义 fetch：在 502 时记录代理返回的 details，便于排查「Failed to fetch」 */
+/** 自定义 fetch：记录 502/5xx 及未收到响应时的错误，便于登录页展示 */
 async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const res = await fetch(input, init);
-  if (res.status === 502) {
-    lastProxyErrorDetail = null;
-    try {
-      const text = await res.text();
-      const j = JSON.parse(text) as { details?: string };
-      if (j.details) {
-        lastProxyErrorDetail = j.details;
-        console.error("[Supabase 代理 502]", j.details);
+  try {
+    const res = await fetch(input, init);
+    if (res.status >= 500) {
+      lastProxyErrorDetail = null;
+      try {
+        const text = await res.text();
+        const j = JSON.parse(text) as { details?: string; error?: string };
+        const msg = j.details ?? j.error ?? text || `HTTP ${res.status}`;
+        lastProxyErrorDetail = msg;
+        console.error("[Supabase 代理]", res.status, msg);
+      } catch {
+        lastProxyErrorDetail = `代理返回 ${res.status}`;
+        console.error("[Supabase 代理]", res.status, "无法解析响应");
       }
-    } catch {
-      console.error("[Supabase 代理 502] 无法解析响应");
     }
+    return res;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    lastProxyErrorDetail = msg;
+    console.error("[Supabase 代理] 请求未完成", msg);
+    throw e;
   }
-  return res;
 }
 
 export function createBrowserSupabase() {
