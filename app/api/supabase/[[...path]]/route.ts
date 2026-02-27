@@ -50,6 +50,17 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
   const configError = getConfigError();
   const noPath = !path || path.length === 0 || path.every((p) => !p);
 
+  if (request.method === "OPTIONS") {
+    const origin = request.headers.get("Origin") ?? request.nextUrl.origin;
+    const reqHeaders = request.headers.get("Access-Control-Request-Headers");
+    const res = new NextResponse(null, { status: 204 });
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.headers.set("Access-Control-Allow-Headers", reqHeaders ?? "authorization, apikey, content-type, accept, x-client-info, prefer");
+    res.headers.set("Access-Control-Max-Age", "86400");
+    return res;
+  }
+
   if (request.method === "GET" && noPath) {
     if (configError) {
       const missing: string[] = [];
@@ -115,6 +126,8 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
         responseHeaders.set(key, value);
       }
     });
+    const origin = request.headers.get("Origin");
+    if (origin) responseHeaders.set("Access-Control-Allow-Origin", origin);
 
     return new NextResponse(res.body, {
       status: res.status,
@@ -129,9 +142,12 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
         ? err.message
         : "Supabase proxy request failed";
     console.error("[Supabase proxy error]", message, err);
-    return NextResponse.json(
+    const out = NextResponse.json(
       { error: "Supabase proxy request failed", details: message },
       { status: 502 }
     );
+    const origin = request.headers.get("Origin");
+    if (origin) out.headers.set("Access-Control-Allow-Origin", origin);
+    return out;
   }
 }
