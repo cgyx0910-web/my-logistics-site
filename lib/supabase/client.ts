@@ -45,7 +45,7 @@ async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promis
       try {
         const text = await res.text();
         const j = JSON.parse(text) as { details?: string; error?: string };
-        const msg = j.details ?? j.error ?? text || `HTTP ${res.status}`;
+        const msg = (j.details ?? j.error ?? text) || `HTTP ${res.status}`;
         lastProxyErrorDetail = msg;
         console.error("[Supabase 代理]", res.status, msg);
       } catch {
