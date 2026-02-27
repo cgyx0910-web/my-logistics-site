@@ -8,6 +8,7 @@ const FORWARD_HEADERS = [
   "authorization",
   "cookie",
   "content-type",
+  "accept",
   "x-requested-with",
   "apikey",
   "x-client-info",
@@ -38,25 +39,58 @@ export async function OPTIONS(request: NextRequest, { params }: { params: Promis
   return proxy(request, await params);
 }
 
+function getConfigError(): string | null {
+  if (!SUPABASE_URL && !SUPABASE_ANON_KEY) return "NEXT_PUBLIC_SUPABASE_URL 与 NEXT_PUBLIC_SUPABASE_ANON_KEY 未在 Vercel 环境变量中配置";
+  if (!SUPABASE_URL) return "NEXT_PUBLIC_SUPABASE_URL 未在 Vercel 环境变量中配置";
+  if (!SUPABASE_ANON_KEY) return "NEXT_PUBLIC_SUPABASE_ANON_KEY 未在 Vercel 环境变量中配置";
+  return null;
+}
+
 async function proxy(request: NextRequest, { path }: { path?: string[] }) {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  const configError = getConfigError();
+  const noPath = !path || path.length === 0 || path.every((p) => !p);
+
+  if (request.method === "GET" && noPath) {
+    if (configError) {
+      const missing: string[] = [];
+      if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+      if (!SUPABASE_ANON_KEY) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      return NextResponse.json(
+        { ok: false, message: "缺少环境变量", missing, details: configError },
+        { status: 502 }
+      );
+    }
+    return NextResponse.json({ ok: true, message: "Supabase 代理环境变量已配置" });
+  }
+
+  if (configError) {
     return NextResponse.json(
-      { error: "Supabase proxy not configured" },
+      { error: "Supabase proxy not configured", details: configError },
       { status: 502 }
     );
   }
 
-  const pathSegments = path && path.length > 0 ? path.join("/") : "";
+  const pathSegments = (noPath ? "" : path!.join("/")).replace(/^\/+|\/+$/g, "").replace(/\/+/g, "/");
   const search = request.nextUrl.search;
+  if (!pathSegments) {
+    if (request.method === "GET") {
+      return NextResponse.json({ ok: true, message: "Supabase 代理环境变量已配置" });
+    }
+    return NextResponse.json(
+      { error: "requested path is invalid", details: "请请求 /api/supabase/<path>，例如 /api/supabase/auth/v1/token" },
+      { status: 400 }
+    );
+  }
   const targetUrl = `${SUPABASE_URL.replace(/\/$/, "")}/${pathSegments}${search}`;
 
   const headers = new Headers();
-  headers.set("apikey", SUPABASE_ANON_KEY);
+  headers.set("apikey", SUPABASE_ANON_KEY!);
   headers.set("Authorization", request.headers.get("Authorization") ?? `Bearer ${SUPABASE_ANON_KEY}`);
 
   FORWARD_HEADERS.forEach((name) => {
+    if (name === "apikey") return;
     const value = request.headers.get(name);
-    if (value && name !== "apikey") headers.set(name, value);
+    if (value) headers.set(name, value);
   });
 
   try {
@@ -81,9 +115,10 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
       headers: responseHeaders,
     });
   } catch (err) {
-    console.error("[Supabase proxy error]", err);
+    const message = err instanceof Error ? err.message : "Supabase proxy request failed";
+    console.error("[Supabase proxy error]", message, err);
     return NextResponse.json(
-      { error: "Supabase proxy request failed" },
+      { error: "Supabase proxy request failed", details: message },
       { status: 502 }
     );
   }

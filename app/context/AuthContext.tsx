@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import type { User } from "@supabase/supabase-js";
-import { createBrowserSupabase } from "@/lib/supabase/client";
+import { createBrowserSupabase, clearLastProxyErrorDetail, getLastProxyErrorDetail } from "@/lib/supabase/client";
 
 export type Profile = {
   id: string;
@@ -145,11 +145,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(
     async (email: string, password: string) => {
+      clearLastProxyErrorDetail();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (!error) return { error: null };
       const msg = error.message ?? "";
       if (msg.includes("Email not confirmed") || /email_not_confirmed/i.test(msg)) {
         return { error: "邮箱尚未确认，请查收邮件并点击确认链接后再登录。若需注册后直接登录，可在 Supabase Dashboard 关闭「Confirm email」。" };
+      }
+      if (/failed to fetch|fetch failed|network error/i.test(msg)) {
+        const detail = getLastProxyErrorDetail();
+        return {
+          error: detail
+            ? `代理异常：${detail}`
+            : "登录请求失败（网络或代理异常）。请打开控制台查看 [Supabase 代理 502] 或检查 Vercel 环境变量是否已配置并重新部署。",
+        };
       }
       return { error: msg };
     },
