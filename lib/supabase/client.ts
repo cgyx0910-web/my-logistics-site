@@ -51,10 +51,20 @@ export async function checkProxyReachable(): Promise<{ ok: boolean; message: str
   }
 }
 
-/** 自定义 fetch：记录 502/5xx 及未收到响应时的错误，便于登录页展示 */
+const CLIENT_FETCH_TIMEOUT_MS = 15_000;
+
+/** 自定义 fetch：延长等待时间以收到代理 502，并记录 502/5xx 及未响应错误 */
 async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), CLIENT_FETCH_TIMEOUT_MS);
+  const userSignal = init?.signal;
+  const onAbort = () => controller.abort();
+  userSignal?.addEventListener?.("abort", onAbort);
+  const merged: RequestInit = { ...init, signal: controller.signal };
   try {
-    const res = await fetch(input, init);
+    const res = await fetch(input, merged);
+    clearTimeout(timeoutId);
+    userSignal?.removeEventListener?.("abort", onAbort);
     if (res.status >= 500) {
       lastProxyErrorDetail = null;
       try {
@@ -70,8 +80,13 @@ async function customFetch(input: RequestInfo | URL, init?: RequestInit): Promis
     }
     return res;
   } catch (e) {
+    clearTimeout(timeoutId);
+    userSignal?.removeEventListener?.("abort", onAbort);
     const msg = e instanceof Error ? e.message : String(e);
-    lastProxyErrorDetail = `请求未完成：${msg}（可能超时、断网或被拦截，请检查 Network 面板）`;
+    const isTimeout = e instanceof Error && e.name === "AbortError";
+    lastProxyErrorDetail = isTimeout
+      ? `请求超时（${CLIENT_FETCH_TIMEOUT_MS / 1000} 秒内未收到响应）。请将 Vercel 项目 Region 改为 Singapore 或 Hong Kong 后重试。`
+      : `请求未完成：${msg}（可能断网或被拦截，请检查 Network 面板）`;
     console.error("[Supabase 代理] 请求未完成", msg, e);
     throw e;
   }
