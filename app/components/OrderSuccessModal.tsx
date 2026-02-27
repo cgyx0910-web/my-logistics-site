@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, MessageCircle, Package } from "lucide-react";
 import { getOrderLabel, type ContactContext } from "@/lib/contact";
 import ContactChannelSelector from "./ContactChannelSelector";
@@ -21,6 +22,7 @@ export default function OrderSuccessModal({
   trackingNumber,
   shippingFee,
 }: OrderSuccessModalProps) {
+  const t = useTranslations("orderSuccess");
   const router = useRouter();
   const [contactSelectorOpen, setContactSelectorOpen] = useState(false);
   const ctx: ContactContext = { orderId, trackingNumber };
@@ -46,22 +48,22 @@ export default function OrderSuccessModal({
             <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden />
           </div>
           <h2 id="order-success-title" className="mt-4 text-xl font-bold text-slate-800">
-            订单已保存
+            {t("title")}
           </h2>
 
           <div className="mt-6 space-y-3 rounded-xl bg-slate-50 p-4 text-left">
             <p className="flex items-center gap-2 text-slate-700">
               <Package className="h-4 w-4 shrink-0 text-slate-500" />
-              <span>单号：</span>
+              <span>{t("orderLabel")}：</span>
               <span className="font-mono font-medium">{orderLabel}</span>
             </p>
             <p className="text-slate-700">
-              预估运费：<span className="font-semibold text-[#1e3a8a]">¥{shippingFee.toFixed(2)}</span>
+              {t("estimatedFreight")}：<span className="font-semibold text-[#1e3a8a]">¥{shippingFee.toFixed(2)}</span>
             </p>
           </div>
 
           <p className="mt-4 text-sm text-amber-800">
-            订单已记录，请联系客服确认货物详情并获取仓库地址。
+            {t("hint")}
           </p>
 
           <div className="mt-6 flex flex-col gap-3">
@@ -71,7 +73,7 @@ export default function OrderSuccessModal({
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-4 py-3 font-medium text-white hover:bg-[#1d4ed8]"
             >
               <Package className="h-5 w-5" />
-              前往订单中心
+              {t("goToOrders")}
             </button>
             <button
               type="button"
@@ -79,7 +81,7 @@ export default function OrderSuccessModal({
               className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#2563eb] bg-white px-4 py-3 font-medium text-[#2563eb] hover:bg-[#2563eb]/5"
             >
               <MessageCircle className="h-5 w-5" />
-              咨询在线客服
+              {t("contactSupport")}
             </button>
             <ContactChannelSelector
               open={contactSelectorOpen}

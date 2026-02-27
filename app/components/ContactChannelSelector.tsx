@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   getContactChannels,
   type ContactContext,
@@ -53,14 +54,12 @@ type ContactChannelSelectorProps = {
   contactContext?: ContactContext | null;
 };
 
-/** 微信复制后的 Toast 提示文案 */
-const WECHAT_COPIED_TOAST = "微信号已复制，请前往微信搜索添加";
-
 export default function ContactChannelSelector({
   open,
   onClose,
   contactContext = null,
 }: ContactChannelSelectorProps) {
+  const t = useTranslations("contact");
   const channels = getContactChannels(contactContext);
 
   const copyToClipboard = useCallback((text: string) => {
@@ -83,13 +82,13 @@ export default function ContactChannelSelector({
     (opt: ContactChannelOption) => {
       if (opt.action === "copy" && opt.wechatId) {
         copyToClipboard(opt.wechatId);
-        showToast(WECHAT_COPIED_TOAST);
+        showToast(t("wechatCopied"));
         return;
       }
       if (opt.action === "open" && opt.href) {
         if (opt.id === "telegram" && opt.message) {
           copyToClipboard(opt.message);
-          showToast("咨询文案已复制，请粘贴到 Telegram 发送");
+          showToast(t("telegramCopied"));
         }
         window.open(opt.href, "_blank", "noopener,noreferrer");
       }
@@ -127,13 +126,13 @@ export default function ContactChannelSelector({
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
           <h2 id="contact-channel-title" className="text-lg font-semibold text-slate-800">
-            选择联系方式
+            {t("selectChannel")}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-            aria-label="关闭"
+            aria-label={t("close")}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -142,7 +141,7 @@ export default function ContactChannelSelector({
         </div>
         <div className="overflow-y-auto p-4 pb-[env(safe-area-inset-bottom)]">
           {channels.length === 0 ? (
-            <p className="py-8 text-center text-slate-500">暂未配置客服渠道，请通过站内其他方式联系。</p>
+            <p className="py-8 text-center text-slate-500">{t("noChannels")}</p>
           ) : (
             <ul className="space-y-3">
               {channels.map((opt) => (
@@ -169,7 +168,7 @@ export default function ContactChannelSelector({
                       </svg>
                     )}
                     {opt.action === "copy" && (
-                      <span className="text-sm text-slate-500">点击复制</span>
+                      <span className="text-sm text-slate-500">{t("clickCopy")}</span>
                     )}
                   </button>
                 </li>

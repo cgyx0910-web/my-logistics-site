@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import { ArrowLeft, Loader2, MessageCircle, ChevronRight, Upload, FileCheck, Truck } from "lucide-react";
 import { useToast } from "@/app/context/ToastContext";
@@ -293,7 +293,6 @@ export default function DashboardOrderDetailPage() {
           contactContext={contactContext}
         />
 
-        {/* 第 2 步：寄送到集运仓（仅普通集运订单显示，淘货跳过） */}
         {!isTreasure && (
           <div className="mt-6 rounded-lg border border-[#2563eb]/30 bg-white p-4">
             <div className="flex items-center gap-2 text-slate-700">
@@ -321,7 +320,6 @@ export default function DashboardOrderDetailPage() {
           </div>
         )}
 
-        {/* 上传支付凭证（淘货为「支付预设运费」） */}
         <div className="mt-4 rounded-lg border border-[#2563eb]/30 bg-white p-4">
           <div className="flex items-center gap-2 text-slate-700">
             <FileCheck className="h-5 w-5 text-[#2563eb]" />
@@ -672,7 +670,6 @@ export default function DashboardOrderDetailPage() {
         )}
       </div>
 
-      {/* 查看凭证弹窗 */}
       {proofModalUrl && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"

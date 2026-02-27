@@ -1,21 +1,25 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/app/context/AuthContext";
 import LoginRegisterModal from "./LoginRegisterModal";
+import LanguageSwitcher from "./LanguageSwitcher";
 import { LogIn, LogOut, User, Gift } from "lucide-react";
 
-const navItems = [
-  { label: "首页", href: "/" },
-  { label: "运费计算", href: "/shipping-calc" },
-  { label: "物流查询", href: "/tracking" },
-  { label: "积分淘货", href: "/points-shop" },
-  { label: "物流故事", href: "/stories" },
-  { label: "关于我们", href: "/about" },
-];
+const navKeys = [
+  { key: "home", href: "/" },
+  { key: "shippingCalc", href: "/shipping-calc" },
+  { key: "tracking", href: "/tracking" },
+  { key: "pointsShop", href: "/points-shop" },
+  { key: "stories", href: "/stories" },
+  { key: "about", href: "/about" },
+] as const;
 
 export default function Navbar() {
+  const t = useTranslations("nav");
+  const tAlerts = useTranslations("alerts");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -58,10 +62,10 @@ export default function Navbar() {
       if (res.ok) {
         await refreshProfile();
       } else {
-        alert(data.error ?? "签到失败");
+        alert(data.error ?? tAlerts("checkInFailed"));
       }
     } catch {
-      alert("签到请求失败");
+      alert(tAlerts("checkInRequestFailed"));
     } finally {
       setSigningIn(false);
     }
@@ -74,17 +78,18 @@ export default function Navbar() {
           href="/"
           className="text-xl font-bold tracking-tight text-white transition-opacity hover:opacity-90 sm:text-2xl"
         >
-          小太羊国际物流
+          {t("brand")}
         </Link>
 
-        <div className="hidden items-center gap-6 md:flex">
-          {navItems.map((item) => (
+        <div className="hidden items-center gap-4 md:flex">
+          <LanguageSwitcher />
+          {navKeys.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className="text-sm font-medium text-white/95 transition-colors hover:text-white"
             >
-              {item.label}
+              {t(item.key)}
             </Link>
           ))}
           {!loading && profile?.role === "admin" && (
@@ -92,11 +97,11 @@ export default function Navbar() {
               href="/admin-control"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-300 hover:text-amber-200"
             >
-              <span>后台管理</span>
+              <span>{t("adminControl")}</span>
               {adminPendingCount > 0 && (
                 <span
                   className="flex min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white"
-                  aria-label={`${adminPendingCount} 笔待确认订单`}
+                  aria-label={t("pendingOrders", { count: adminPendingCount })}
                 >
                   {adminPendingCount > 99 ? "99+" : adminPendingCount}
                 </span>
@@ -111,11 +116,11 @@ export default function Navbar() {
                     href="/dashboard"
                     className="text-sm font-medium text-white/90 hover:text-white"
                   >
-                    个人中心
+                    {t("dashboard")}
                   </Link>
                   <span className="flex items-center gap-1.5 text-sm text-white/90">
                     <Gift className="h-4 w-4" />
-                    {profile?.points ?? 0} 积分
+                    {profile?.points ?? 0} {t("points")}
                   </span>
                   <button
                     type="button"
@@ -123,16 +128,16 @@ export default function Navbar() {
                     disabled={signingIn}
                     className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-60"
                   >
-                    {signingIn ? "签到中…" : "签到"}
+                    {signingIn ? t("checkingIn") : t("checkIn")}
                   </button>
                   <button
                     type="button"
                     onClick={() => signOut()}
                     className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white/90 hover:bg-white/10"
-                    aria-label="退出登录"
+                    aria-label={t("signOutLabel")}
                   >
                     <LogOut className="h-4 w-4" />
-                    退出
+                    {t("signOut")}
                   </button>
                 </div>
               ) : (
@@ -142,41 +147,44 @@ export default function Navbar() {
                   className="flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white hover:bg-white/25"
                 >
                   <LogIn className="h-4 w-4" />
-                  登录 / 注册
+                  {t("loginRegister")}
                 </button>
               )}
             </>
           )}
         </div>
 
-        <button
-          type="button"
-          className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/10 md:hidden"
-          aria-expanded={mobileMenuOpen}
-          aria-label="打开菜单"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {mobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/10"
+            aria-expanded={mobileMenuOpen}
+            aria-label={t("openMenu")}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </nav>
 
       {mobileMenuOpen && (
         <div className="border-t border-white/20 bg-[#1e3a8a] px-4 py-4 md:hidden">
           <ul className="flex flex-col gap-2">
-            {navItems.map((item) => (
+            {navKeys.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/10"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               </li>
             ))}
@@ -187,7 +195,7 @@ export default function Navbar() {
                   className="flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-amber-300 hover:bg-white/10"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <span>后台管理</span>
+                  <span>{t("adminControl")}</span>
                   {adminPendingCount > 0 && (
                     <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
                       {adminPendingCount > 99 ? "99+" : adminPendingCount}
@@ -202,14 +210,14 @@ export default function Navbar() {
                   <div className="flex flex-col gap-2">
                     <Link
                       href="/dashboard"
-                      className="flex items-center gap-2 px-3 py-2 text-white/90 hover:bg-white/10 rounded-lg"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-white/90 hover:bg-white/10"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <User className="h-4 w-4" />
-                      个人中心
+                      {t("dashboard")}
                     </Link>
                     <span className="px-3 py-2 text-amber-300">
-                      {profile?.points ?? 0} 积分
+                      {profile?.points ?? 0} {t("points")}
                     </span>
                     <button
                       type="button"
@@ -217,14 +225,14 @@ export default function Navbar() {
                       disabled={signingIn}
                       className="rounded-lg bg-amber-500 px-3 py-2 text-left text-sm font-medium text-white"
                     >
-                      {signingIn ? "签到中…" : "签到"}
+                      {signingIn ? t("checkingIn") : t("checkIn")}
                     </button>
                     <button
                       type="button"
                       onClick={() => { signOut(); setMobileMenuOpen(false); }}
                       className="rounded-lg px-3 py-2 text-left text-sm text-white/90 hover:bg-white/10"
                     >
-                      退出登录
+                      {t("signOut")}
                     </button>
                   </div>
                 ) : (
@@ -234,7 +242,7 @@ export default function Navbar() {
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-white hover:bg-white/10"
                   >
                     <LogIn className="h-4 w-4" />
-                    登录 / 注册
+                    {t("loginRegister")}
                   </button>
                 )}
               </li>

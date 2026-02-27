@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/app/context/AuthContext";
 import { X } from "lucide-react";
 
@@ -13,6 +14,7 @@ export default function LoginRegisterModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = useTranslations("auth");
   const { signIn, signUp } = useAuth();
   const [tab, setTab] = useState<Tab>("login");
   const [email, setEmail] = useState("");
@@ -51,7 +53,7 @@ export default function LoginRegisterModal({
       const { error: err } = await signUp(email, password, fullName || undefined);
       setSubmitting(false);
       if (err) setError(err);
-      else setSuccess("注册成功，请查收邮件确认（若需）或直接登录。");
+      else setSuccess(t("registerSuccess"));
     }
   };
 
@@ -72,13 +74,13 @@ export default function LoginRegisterModal({
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <h2 id="auth-modal-title" className="text-lg font-semibold text-slate-800">
-            {tab === "login" ? "登录" : "注册"}
+            {tab === "login" ? t("login") : t("register")}
           </h2>
           <button
             type="button"
             onClick={handleClose}
             className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-            aria-label="关闭"
+            aria-label={t("close")}
           >
             <X className="h-5 w-5" />
           </button>
@@ -90,14 +92,14 @@ export default function LoginRegisterModal({
             onClick={() => { setTab("login"); setError(""); setSuccess(""); }}
             className={`flex-1 px-4 py-3 text-sm font-medium transition ${tab === "login" ? "border-b-2 border-[#2563eb] text-[#2563eb]" : "text-slate-500 hover:text-slate-700"}`}
           >
-            登录
+            {t("login")}
           </button>
           <button
             type="button"
             onClick={() => { setTab("register"); setError(""); setSuccess(""); }}
             className={`flex-1 px-4 py-3 text-sm font-medium transition ${tab === "register" ? "border-b-2 border-[#2563eb] text-[#2563eb]" : "text-slate-500 hover:text-slate-700"}`}
           >
-            注册
+            {t("register")}
           </button>
         </div>
 
@@ -105,7 +107,7 @@ export default function LoginRegisterModal({
           {tab === "register" && (
             <div>
               <label htmlFor="auth-full-name" className="mb-1 block text-sm font-medium text-slate-700">
-                昵称（选填）
+                {t("nicknameLabel")}
               </label>
               <input
                 id="auth-full-name"
@@ -113,13 +115,13 @@ export default function LoginRegisterModal({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 focus:border-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20"
-                placeholder="您的昵称"
+                placeholder={t("nicknamePlaceholder")}
               />
             </div>
           )}
           <div>
             <label htmlFor="auth-email" className="mb-1 block text-sm font-medium text-slate-700">
-              邮箱
+              {t("email")}
             </label>
             <input
               id="auth-email"
@@ -133,7 +135,7 @@ export default function LoginRegisterModal({
           </div>
           <div>
             <label htmlFor="auth-password" className="mb-1 block text-sm font-medium text-slate-700">
-              密码
+              {t("password")}
             </label>
             <input
               id="auth-password"
@@ -160,7 +162,7 @@ export default function LoginRegisterModal({
             disabled={submitting}
             className="w-full rounded-lg bg-[#2563eb] px-4 py-3 font-semibold text-white transition hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:ring-offset-2 disabled:opacity-60"
           >
-            {submitting ? "处理中…" : tab === "login" ? "登录" : "注册"}
+            {submitting ? t("processing") : tab === "login" ? t("login") : t("register")}
           </button>
         </form>
       </div>

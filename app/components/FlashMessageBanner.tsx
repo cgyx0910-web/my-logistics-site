@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 
 const STORAGE_KEY = "flashMessage";
 
 export default function FlashMessageBanner() {
+  const t = useTranslations("flashMessage");
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function FlashMessageBanner() {
         type="button"
         onClick={() => setMessage(null)}
         className="rounded p-1 hover:bg-white/20"
-        aria-label="关闭"
+        aria-label={t("close")}
       >
         <X className="h-5 w-5" />
       </button>

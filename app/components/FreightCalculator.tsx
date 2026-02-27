@@ -1,19 +1,12 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/app/context/AuthContext";
 import OrderSuccessModal from "./OrderSuccessModal";
 
 const VOLUME_DIVISOR = 6000;
-
-/** 国家代码 -> 显示名称（与 shipping_rates.country 一致） */
-const COUNTRY_LABELS: Record<string, string> = {
-  tw: "台湾",
-  th: "泰国",
-  kh: "柬埔寨",
-  my: "马来西亚",
-  id: "印度尼西亚",
-};
+const COUNTRY_KEYS = ["tw", "th", "kh", "my", "id"] as const;
 
 type ShippingRateItem = {
   id: string;
@@ -26,6 +19,8 @@ type ShippingRateItem = {
 };
 
 export default function FreightCalculator() {
+  const t = useTranslations("shippingCalc");
+  const tCountries = useTranslations("countries");
   const [rates, setRates] = useState<ShippingRateItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [destination, setDestination] = useState("");
@@ -157,7 +152,7 @@ export default function FreightCalculator() {
     return (
       <section id="freight-calculator" className="mx-auto max-w-2xl px-4 py-12 sm:py-16">
         <div className="rounded-2xl bg-white p-6 shadow-lg sm:p-8">
-          <p className="text-slate-500">加载运费数据中…</p>
+          <p className="text-slate-500">{t("loadingRates")}</p>
         </div>
       </section>
     );
@@ -167,26 +162,26 @@ export default function FreightCalculator() {
     <section id="freight-calculator" className="mx-auto max-w-2xl px-4 py-12 sm:py-16">
       <div className="rounded-2xl bg-white p-6 shadow-lg sm:p-8">
         <h2 className="text-xl font-bold text-slate-800 sm:text-2xl">
-          运费试算
+          {t("sectionTitle")}
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          输入货物信息，快速预估计费重与总运费（仅供参考）
+          {t("sectionDesc")}
         </p>
 
         <div className="mt-6 space-y-5">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              目的地
+              {t("destination")}
             </label>
             <select
               value={destination}
               onChange={(e) => handleDestinationChange(e.target.value)}
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-800 focus:border-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20"
             >
-              <option value="">请选择目的地</option>
+              <option value="">{t("selectDestination")}</option>
               {countries.map((code) => (
                 <option key={code} value={code}>
-                  {COUNTRY_LABELS[code] ?? code}
+                  {(code === "tw" || code === "th" || code === "kh" || code === "my" || code === "id") ? tCountries(code) : code}
                 </option>
               ))}
             </select>
@@ -194,7 +189,7 @@ export default function FreightCalculator() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              运输方式
+              {t("shippingMethod")}
             </label>
             <select
               value={shippingMethod}
@@ -206,7 +201,7 @@ export default function FreightCalculator() {
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-800 focus:border-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
             >
               <option value="">
-                {destination ? "请选择运输方式" : "请先选择目的地"}
+                {destination ? t("selectMethod") : t("selectDestinationFirst")}
               </option>
               {availableMethods.map((m) => (
                 <option key={m} value={m}>
@@ -219,7 +214,7 @@ export default function FreightCalculator() {
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                长 (cm)
+                {t("length")}
               </label>
               <input
                 type="number"
@@ -233,7 +228,7 @@ export default function FreightCalculator() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                宽 (cm)
+                {t("width")}
               </label>
               <input
                 type="number"
@@ -247,7 +242,7 @@ export default function FreightCalculator() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                高 (cm)
+                {t("height")}
               </label>
               <input
                 type="number"
@@ -263,7 +258,7 @@ export default function FreightCalculator() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              实际重量 (kg)
+              {t("weight")}
             </label>
             <input
               type="number"
@@ -282,36 +277,36 @@ export default function FreightCalculator() {
             disabled={!currentMethodValid}
             className="w-full rounded-lg bg-[#2563eb] px-6 py-3 font-semibold text-white shadow-md transition hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
           >
-            开始计算
+            {t("calculate")}
           </button>
         </div>
 
         {result !== null && "noRate" in result && result.noRate && (
           <div className="mt-8 rounded-xl border-2 border-amber-200 bg-amber-50 p-6 text-amber-800">
-            <p className="font-medium">当前路线暂无报价，请联系客服。</p>
+            <p className="font-medium">{t("noRate")}</p>
           </div>
         )}
 
         {result !== null && !("noRate" in result) && (
           <div className="mt-8 rounded-xl bg-slate-50 p-6 ring-2 ring-[#2563eb]/30">
             <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">
-              试算结果
+              {t("resultTitle")}
             </h3>
             <p className="mt-3 text-sm font-medium text-slate-700">
-              计费单价：{result.unitPrice} 元/kg
+              {t("unitPrice", { price: result.unitPrice })}
             </p>
             <p className="mt-1 text-sm text-slate-600">
-              计费重量：{result.chargeableWeight} kg
+              {t("chargeableWeight", { weight: result.chargeableWeight })}
             </p>
             <div className="mt-4 flex flex-wrap gap-8">
               <div>
-                <p className="text-sm text-slate-600">预计计费重</p>
+                <p className="text-sm text-slate-600">{t("estimatedWeight")}</p>
                 <p className="mt-0.5 text-2xl font-bold text-[#1e3a8a] sm:text-3xl">
                   {result.chargeableWeight} kg
                 </p>
               </div>
               <div>
-                <p className="text-sm text-slate-600">预估总运费</p>
+                <p className="text-sm text-slate-600">{t("estimatedFreight")}</p>
                 <p className="mt-0.5 text-2xl font-bold text-[#1e3a8a] sm:text-3xl">
                   ¥{result.totalFreight.toFixed(2)}
                 </p>
@@ -324,7 +319,7 @@ export default function FreightCalculator() {
                 onClick={async () => {
                   const token = await getAccessToken();
                   if (!token) {
-                    alert("请先登录后再保存订单");
+                    alert(t("loginToSave"));
                     return;
                   }
                   setSavingOrder(true);
@@ -345,17 +340,17 @@ export default function FreightCalculator() {
                         shippingFee: result.totalFreight,
                       });
                     } else {
-                      alert(data?.error ?? "保存订单失败");
+                      alert(data?.error ?? t("saveOrderFailed"));
                     }
                   } catch {
-                    alert("保存订单请求失败");
+                    alert(t("saveOrderRequestFailed"));
                   } finally {
                     setSavingOrder(false);
                   }
                 }}
                 className="rounded-lg bg-[#1e3a8a] px-5 py-2.5 font-semibold text-white shadow transition hover:bg-[#1e40af] disabled:opacity-60"
               >
-                {savingOrder ? "保存中…" : "保存订单"}
+                {savingOrder ? t("savingOrder") : t("saveOrder")}
               </button>
             </div>
           </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import type { AuctionProductRow } from "@/types/database";
 import { useAuth } from "@/app/context/AuthContext";
 
@@ -15,6 +15,7 @@ export default function PointsShopCard({
   product: AuctionProductRow;
   index: number;
 }) {
+  const t = useTranslations("pointsShop");
   const router = useRouter();
   const { user, profile, getAccessToken, refreshProfile } = useAuth();
   const [bidding, setBidding] = useState(false);
@@ -28,12 +29,12 @@ export default function PointsShopCard({
 
   const handleBidOrExchange = async () => {
     if (!user) {
-      alert("请先登录");
+      alert(t("pleaseLogin"));
       return;
     }
     if (isAuction) {
       if (userPoints < startPoints) {
-        alert(`积分余额不足，起拍需 ${startPoints} 积分，当前 ${userPoints} 积分`);
+        alert(t("insufficientPointsBid", { need: startPoints, current: userPoints }));
         return;
       }
       setBidding(true);
@@ -53,24 +54,24 @@ export default function PointsShopCard({
         const data = await res.json();
         if (res.ok) {
           await refreshProfile();
-          alert("出价成功");
+          alert(t("bidSuccess"));
         } else {
           if (process.env.NODE_ENV !== "production") {
             console.error("[淘货出价] 接口失败:", res.status, data);
           }
-          alert(data.error ?? "出价失败");
+          alert(data.error ?? t("bidFailed"));
         }
       } catch (err) {
         if (process.env.NODE_ENV !== "production") {
           console.error("[淘货出价] 请求异常:", err);
         }
-        alert("请求失败");
+        alert(t("requestFailed"));
       } finally {
         setBidding(false);
       }
     } else {
       if (userPoints < directPoints) {
-        alert(`积分余额不足，直拍需 ${directPoints} 积分，当前 ${userPoints} 积分`);
+        alert(t("insufficientPointsDirect", { need: directPoints, current: userPoints }));
         return;
       }
       setBidding(true);
@@ -90,23 +91,23 @@ export default function PointsShopCard({
         const data = await res.json();
         if (res.ok) {
           await refreshProfile();
-          if (data.order_id) {
-            alert("请支付预设运费");
+            if (data.order_id) {
+            alert(t("pleasePayShipping"));
             router.push("/dashboard");
           } else {
-            alert("兑换成功");
+            alert(t("exchangeSuccess"));
           }
         } else {
           if (process.env.NODE_ENV !== "production") {
             console.error("[淘货兑换] 接口失败:", res.status, data);
           }
-          alert(data.error ?? "兑换失败");
+          alert(data.error ?? t("exchangeFailed"));
         }
       } catch (err) {
         if (process.env.NODE_ENV !== "production") {
           console.error("[淘货兑换] 请求异常:", err);
         }
-        alert("请求失败");
+        alert(t("requestFailed"));
       } finally {
         setBidding(false);
       }
@@ -146,7 +147,7 @@ export default function PointsShopCard({
             href={`/points-shop/${product.id}`}
             className="shrink-0 text-sm font-medium text-amber-600 hover:text-amber-700"
           >
-            查看详情
+            {t("viewDetails")}
           </Link>
         </div>
 
@@ -154,16 +155,16 @@ export default function PointsShopCard({
           {isAuction ? (
             <>
               <p className="font-medium text-amber-700">
-                起拍积分：{startPoints} / 直拍积分：{directPoints}
+                {t("startBid", { start: startPoints, direct: directPoints })}
               </p>
             </>
           ) : (
             <p className="font-medium text-amber-700">
-              所需积分：{directPoints}
+              {t("requiredPoints", { points: directPoints })}
             </p>
           )}
           <p className="text-slate-600">
-            固定运费（Shipping Fee）：¥{(Number(shippingFee)).toFixed(2)}
+            {t("fixedShipping", { fee: (Number(shippingFee)).toFixed(2) })}
           </p>
         </div>
 
@@ -180,10 +181,10 @@ export default function PointsShopCard({
           className="mt-3 w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 font-semibold text-white shadow-md transition hover:from-amber-600 hover:to-orange-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {bidding
-            ? "提交中…"
+            ? t("submit")
             : !isAuction && (product.stock ?? 0) < 1
-              ? "已售罄"
-              : (product.button_text ?? (isAuction ? "立即出价" : "立即兑换"))}
+              ? t("soldOut")
+              : (product.button_text ?? (isAuction ? t("bidNow") : t("exchangeNow")))}
         </button>
       </div>
     </article>

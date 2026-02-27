@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
-import { getSiteSettings } from "@/lib/data";
-import Navbar from "./components/Navbar";
-import ContactFloat from "./components/ContactFloat";
-import FlashMessageBanner from "./components/FlashMessageBanner";
-import AuthGate from "./components/AuthGate";
-import { AuthProvider } from "./context/AuthContext";
-import { ToastProvider } from "./context/ToastContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,24 +24,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const siteSettings = await getSiteSettings();
-  const whatsappLink = siteSettings.whatsapp_link?.trim() || undefined;
+  const headersList = await headers();
+  const locale = headersList.get("x-next-intl-locale") || "zh-CN";
 
   return (
-    <html lang="zh-CN">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <ToastProvider>
-            <AuthGate>
-              <FlashMessageBanner />
-              <Navbar />
-              {children}
-              <ContactFloat whatsappLink={whatsappLink} />
-            </AuthGate>
-          </ToastProvider>
-        </AuthProvider>
+        {children}
       </body>
     </html>
   );

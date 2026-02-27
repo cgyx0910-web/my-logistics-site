@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import imageCompression from "browser-image-compression";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import {
   Search,

@@ -1,15 +1,17 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { getLogisticsStory } from "@/lib/data";
-import StoryContent from "./StoryContent";
+import StoryContent from "@/app/stories/[id]/StoryContent";
 import { ChevronLeft } from "lucide-react";
 
-export default async function StoryDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+type Props = { params: Promise<{ locale: string; id: string }> };
+
+export default async function StoryDetailPage({ params }: Props) {
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("stories");
   const story = await getLogisticsStory(id);
   if (!story) notFound();
 
@@ -21,7 +23,7 @@ export default async function StoryDetailPage({
           className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-800"
         >
           <ChevronLeft className="h-4 w-4" />
-          返回列表
+          {t("backToList")}
         </Link>
 
         {story.image_url && (
@@ -44,7 +46,7 @@ export default async function StoryDetailPage({
               </span>
             )}
             <time dateTime={story.created_at}>
-              {new Date(story.created_at).toLocaleDateString("zh-CN")}
+              {new Date(story.created_at).toLocaleDateString(locale)}
             </time>
           </div>
         </header>

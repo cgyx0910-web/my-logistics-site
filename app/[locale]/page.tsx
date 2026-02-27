@@ -1,12 +1,20 @@
-import Link from "next/link";
+import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { getAuctionProducts, getLogisticsStories, getSiteSettings } from "@/lib/data";
-import FreightCalculator from "./components/FreightCalculator";
-import LogisticsStories from "./components/LogisticsStories";
-import PointsShop from "./components/PointsShop";
-import ShippingServices from "./components/ShippingServices";
-import TrackingQuery from "./components/TrackingQuery";
+import FreightCalculator from "@/app/components/FreightCalculator";
+import LogisticsStories from "@/app/components/LogisticsStories";
+import PointsShop from "@/app/components/PointsShop";
+import ShippingServices from "@/app/components/ShippingServices";
+import TrackingQuery from "@/app/components/TrackingQuery";
 
-export default async function Home() {
+type Props = { params: Promise<{ locale: string }> };
+
+export default async function Home({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations("home");
   const [auctionProducts, logisticsStories, siteSettings] = await Promise.all([
     getAuctionProducts(),
     getLogisticsStories(),
@@ -21,13 +29,11 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* 滚动公告（site_announcement） */}
       {announcement && (
         <div className="overflow-hidden bg-amber-500 px-4 py-2 text-sm font-medium text-white">
           <span className="inline-block whitespace-nowrap animate-marquee">{announcement}</span>
         </div>
       )}
-      {/* Hero 区域（可选 Banner 图与功能图标来自 site_settings） */}
       <section
         className="relative overflow-hidden px-4 py-20 sm:py-28 md:py-36"
         style={
@@ -41,10 +47,10 @@ export default async function Home() {
         )}
         <div className="relative mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-sm sm:text-5xl md:text-6xl lg:text-7xl">
-            东南亚跨境物流专家
+            {t("heroTitle")}
           </h1>
           <p className="mt-6 text-lg text-white/90 sm:text-xl md:text-2xl">
-            专注台湾、泰国、柬埔寨、马、印集运服务
+            {t("heroSubtitle")}
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -54,7 +60,7 @@ export default async function Home() {
               {iconShipping ? (
                 <img src={iconShipping} alt="" className="h-6 w-6 object-contain" />
               ) : null}
-              运费计算
+              {t("shippingCalc")}
             </Link>
             <Link
               href="/tracking"
@@ -63,7 +69,7 @@ export default async function Home() {
               {iconTracking ? (
                 <img src={iconTracking} alt="" className="h-6 w-6 object-contain" />
               ) : null}
-              物流查询
+              {t("tracking")}
             </Link>
             <Link
               href="/points-shop"
@@ -72,38 +78,29 @@ export default async function Home() {
               {iconPoints ? (
                 <img src={iconPoints} alt="" className="h-6 w-6 object-contain" />
               ) : null}
-              积分商城
+              {t("pointsMall")}
             </Link>
           </div>
         </div>
       </section>
 
-      {/* 运费试算 */}
       <FreightCalculator />
-
-      {/* 物流单号查询 */}
       <TrackingQuery />
 
-      {/* 积分淘货 */}
-      <section id="points-shop" aria-label="积分淘货">
+      <section id="points-shop" aria-label={t("pointsShopAria")}>
         <PointsShop products={auctionProducts} />
       </section>
 
-      {/* 物流故事 (Logistics Stories) */}
       <LogisticsStories stories={logisticsStories} />
-
-      {/* 运输服务介绍 */}
       <ShippingServices />
 
-      {/* 简要介绍区域 */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
         <div className="rounded-2xl bg-white p-8 shadow-sm sm:p-10 md:p-12">
           <h2 className="text-2xl font-bold text-slate-800 sm:text-3xl">
-            专业、可靠、省心
+            {t("introTitle")}
           </h2>
           <p className="mt-4 max-w-2xl text-slate-600 leading-relaxed">
-            小太羊国际物流致力于为跨境卖家与个人用户提供一站式集运与物流解决方案，
-            覆盖台湾、泰国、柬埔寨、马来西亚、印尼等市场，让您的货物安全、高效送达。
+            {t("introText")}
           </p>
         </div>
       </section>

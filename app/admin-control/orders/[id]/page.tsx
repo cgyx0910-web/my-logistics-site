@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import { ArrowLeft, Loader2, CheckCircle, Copy } from "lucide-react";

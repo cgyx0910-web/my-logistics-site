@@ -1,15 +1,17 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { getAuctionProduct } from "@/lib/data";
-import ProductDetailClient from "./ProductDetailClient";
+import ProductDetailClient from "@/app/points-shop/[id]/ProductDetailClient";
 import { ChevronLeft } from "lucide-react";
 
-export default async function PointsShopProductPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+type Props = { params: Promise<{ locale: string; id: string }> };
+
+export default async function PointsShopProductPage({ params }: Props) {
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("pointsShop");
   const product = await getAuctionProduct(id);
   if (!product) notFound();
 
@@ -21,7 +23,7 @@ export default async function PointsShopProductPage({
           className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-800"
         >
           <ChevronLeft className="h-4 w-4" />
-          返回积分淘货
+          {t("backToShop")}
         </Link>
         <ProductDetailClient product={product} />
       </div>
