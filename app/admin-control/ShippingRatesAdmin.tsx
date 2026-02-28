@@ -346,7 +346,8 @@ export default function ShippingRatesAdmin() {
         if (allErrors.length > 0) setErrorRowsModal(allErrors);
         setFileParseErrors([]);
         await fetchRates();
-        toast.success(`已更新：新增 ${added} 条，修改 ${updated} 条`);
+        setTab("list");
+        toast.success(`已更新：新增 ${added} 条，修改 ${updated} 条。已切换到价格表`);
       } else {
         toast.error(data.error ?? "执行失败");
       }
@@ -494,6 +495,9 @@ export default function ShippingRatesAdmin() {
 
       {tab === "list" && (
         <div className="mt-4 space-y-4">
+          <p className="text-sm text-slate-600">
+            双击「价格(元/kg)」或「时效」可编辑并保存；起运重/重量上限需通过 CSV 上传或调价修改。
+          </p>
           <div className="flex justify-end">
             <button
               type="button"
