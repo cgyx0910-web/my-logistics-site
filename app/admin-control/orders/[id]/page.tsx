@@ -279,6 +279,45 @@ export default function AdminOrderDetailPage() {
         <p className="mt-1 text-sm text-slate-600">
           状态：{order.status} · 运费：¥{Number(order.shipping_fee).toFixed(2)}
         </p>
+        {order.status === "待确认" && (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+            <h3 className="text-sm font-semibold text-slate-800">订单取消（仅待确认时可申请取消，需双方同意后生效）</h3>
+            {order.cancel_requested_by === "customer" && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <p className="text-sm font-medium text-amber-800">客户已申请取消</p>
+                <button
+                  type="button"
+                  onClick={handleConfirmCancel}
+                  disabled={cancelLoading}
+                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+                >
+                  {cancelLoading ? "处理中…" : "同意"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRejectCancel}
+                  disabled={cancelLoading}
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                >
+                  不同意
+                </button>
+              </div>
+            )}
+            {order.cancel_requested_by === "admin" && (
+              <p className="mt-2 text-sm text-slate-600">管理员已申请取消，待客户在订单详情页同意后生效</p>
+            )}
+            {!order.cancel_requested_by && (
+              <button
+                type="button"
+                onClick={handleRequestCancel}
+                disabled={cancelLoading}
+                className="mt-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {cancelLoading ? "提交中…" : "申请取消（需客户同意）"}
+              </button>
+            )}
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <label className="text-sm font-medium text-slate-700">物流单号（用于首页查询）：</label>
           <input
@@ -358,46 +397,6 @@ export default function AdminOrderDetailPage() {
           {settling ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {order.status === "已完成" ? "已结算" : "确认结算"}
         </button>
-
-        {order.status === "待确认" && (
-          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
-            <h3 className="text-sm font-semibold text-slate-800">订单取消（仅待确认时可申请取消，需双方同意后生效）</h3>
-            {order.cancel_requested_by === "customer" && (
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <p className="text-sm font-medium text-amber-800">客户已申请取消</p>
-                <button
-                  type="button"
-                  onClick={handleConfirmCancel}
-                  disabled={cancelLoading}
-                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
-                >
-                  {cancelLoading ? "处理中…" : "同意"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRejectCancel}
-                  disabled={cancelLoading}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                >
-                  不同意
-                </button>
-              </div>
-            )}
-            {order.cancel_requested_by === "admin" && (
-              <p className="mt-2 text-sm text-slate-600">管理员已申请取消，待客户在订单详情页同意后生效</p>
-            )}
-            {!order.cancel_requested_by && (
-              <button
-                type="button"
-                onClick={handleRequestCancel}
-                disabled={cancelLoading}
-                className="mt-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-              >
-                {cancelLoading ? "提交中…" : "申请取消（需客户同意）"}
-              </button>
-            )}
-          </div>
-        )}
 
         {order.payment_proof_url && (
           <div className="mt-4 border-t border-slate-200 pt-4">

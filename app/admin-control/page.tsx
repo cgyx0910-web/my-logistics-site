@@ -690,7 +690,7 @@ export default function AdminControlPage() {
                         className="inline-flex items-center gap-1 rounded bg-[#2563eb] px-2 py-1 text-xs font-medium text-white hover:bg-[#1d4ed8]"
                       >
                         <Package className="h-3 w-3" />
-                        管理轨迹
+                        订单详情
                       </Link>
                     </div>
                   </td>
