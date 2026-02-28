@@ -15,7 +15,7 @@ export default function FlashMessageBanner() {
     const msg = sessionStorage.getItem(STORAGE_KEY);
     if (msg) {
       sessionStorage.removeItem(STORAGE_KEY);
-      setMessage(msg);
+      queueMicrotask(() => setMessage(msg));
     }
   }, []);
 

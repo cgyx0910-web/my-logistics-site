@@ -320,7 +320,7 @@ export default function ShippingRatesAdmin() {
       } else {
         alert(data.error ?? "预览失败");
       }
-    } catch (e) {
+    } catch {
       setParseProgress(100);
       alert("请求失败");
     }

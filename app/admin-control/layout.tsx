@@ -34,34 +34,38 @@ export default function AdminControlLayout({
   useEffect(() => {
     if (isInitializing || loading) return;
     if (!user) {
-      setPermissionMessage("请先登录");
+      queueMicrotask(() => setPermissionMessage("请先登录"));
       return;
     }
     // 已明确为 admin 则放行
     if (profile?.role === "admin") {
-      setVerified(true);
+      queueMicrotask(() => setVerified(true));
       return;
     }
     // 已登录但 profile 已加载且非 admin：直接提示权限不足，不请求 API
     if (profile !== null && profile !== undefined && profile.role !== "admin") {
-      setPermissionMessage("权限不足：该页面仅限管理员访问");
-      setVerified(false);
+      queueMicrotask(() => {
+        setPermissionMessage("权限不足：该页面仅限管理员访问");
+        setVerified(false);
+      });
       return;
     }
     let cancelled = false;
     const timeoutId = setTimeout(() => {
       if (cancelled) return;
-      setVerified(false);
-      setPermissionMessage("请求超时，请刷新重试");
+      queueMicrotask(() => {
+        setVerified(false);
+        setPermissionMessage("请求超时，请刷新重试");
+      });
     }, 10000);
     refreshProfile().then((fresh) => {
       if (cancelled) return;
       clearTimeout(timeoutId);
       const isAdmin = fresh?.role === "admin";
-      setVerified(isAdmin);
-      if (!isAdmin) {
-        setPermissionMessage("权限不足：该页面仅限管理员访问");
-      }
+      queueMicrotask(() => {
+        setVerified(isAdmin);
+        if (!isAdmin) setPermissionMessage("权限不足：该页面仅限管理员访问");
+      });
     });
     return () => {
       cancelled = true;
