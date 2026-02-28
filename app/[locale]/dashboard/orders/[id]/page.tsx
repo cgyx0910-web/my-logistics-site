@@ -301,39 +301,6 @@ export default function DashboardOrderDetailPage() {
         返回个人中心
       </Link>
 
-      {order.status === "待确认" && (
-        <div className="mt-6 rounded-xl border-2 border-amber-200 bg-amber-50/50 p-4">
-          <h3 className="text-sm font-semibold text-slate-800">订单取消</h3>
-          <p className="mt-1 text-sm text-slate-600">若不需要此订单，可申请取消（仅待确认时可操作）</p>
-          {!order.cancel_requested_by && (
-            <button
-              type="button"
-              onClick={handleRequestCancel}
-              disabled={cancelLoading}
-              className="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
-            >
-              {cancelLoading ? "提交中…" : "不想要了，申请取消订单"}
-            </button>
-          )}
-          {order.cancel_requested_by === "customer" && (
-            <p className="mt-3 text-sm font-medium text-amber-800">您已申请取消，等待管理员同意</p>
-          )}
-          {order.cancel_requested_by === "admin" && (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <p className="text-sm font-medium text-slate-700">管理员申请取消该订单，是否同意？</p>
-              <button
-                type="button"
-                onClick={handleConfirmCancel}
-                disabled={cancelLoading}
-                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
-              >
-                {cancelLoading ? "提交中…" : "同意"}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="mt-6 rounded-xl border-2 border-[#2563eb]/20 bg-[#eff6ff] p-5">
         {isTreasure && (
           <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
@@ -746,6 +713,39 @@ export default function DashboardOrderDetailPage() {
           </ul>
         )}
       </div>
+
+      {order.status === "待确认" && (
+        <div className="mt-6 rounded-xl border-2 border-amber-200 bg-amber-50/50 p-4">
+          <h3 className="text-sm font-semibold text-slate-800">订单取消</h3>
+          <p className="mt-1 text-sm text-slate-600">若不需要此订单，可申请取消（仅待确认时可操作）</p>
+          {!order.cancel_requested_by && (
+            <button
+              type="button"
+              onClick={handleRequestCancel}
+              disabled={cancelLoading}
+              className="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+            >
+              {cancelLoading ? "提交中…" : "不想要了，申请取消订单"}
+            </button>
+          )}
+          {order.cancel_requested_by === "customer" && (
+            <p className="mt-3 text-sm font-medium text-amber-800">您已申请取消，等待管理员同意</p>
+          )}
+          {order.cancel_requested_by === "admin" && (
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <p className="text-sm font-medium text-slate-700">管理员申请取消该订单，是否同意？</p>
+              <button
+                type="button"
+                onClick={handleConfirmCancel}
+                disabled={cancelLoading}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+              >
+                {cancelLoading ? "提交中…" : "同意"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {proofModalUrl && (
         <div
