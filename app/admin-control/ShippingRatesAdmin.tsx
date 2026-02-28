@@ -12,6 +12,7 @@ import {
   Percent,
   X,
   Download,
+  Trash2,
 } from "lucide-react";
 
 /** 标准表头：country, method, price_per_kg, min_weight, estimated_days（表头百分之百准确） */
@@ -107,6 +108,7 @@ export default function ShippingRatesAdmin() {
   const [ratesLoading, setRatesLoading] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string; field: "unit_price" | "delivery_days"; value: string } | null>(null);
   const [savingCell, setSavingCell] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchRates = useCallback(async () => {
@@ -160,6 +162,29 @@ export default function ShippingRatesAdmin() {
     } finally {
       setSavingCell(null);
       setEditingCell(null);
+    }
+  };
+
+  const handleDeleteRow = async (r: RateRow) => {
+    if (!confirm(`确定删除该条运费？\n国家：${r.country}，渠道：${r.shipping_method}，起运重：${r.min_weight} kg`)) return;
+    setDeletingId(r.id);
+    const token = await getAccessToken();
+    try {
+      const res = await fetch(`${window.location.origin}/api/admin/shipping-rates/${r.id}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        await fetchRates();
+        toast.success("已删除，前台运费试算已同步更新");
+      } else {
+        const data = await res.json();
+        toast.error(data?.error ?? "删除失败");
+      }
+    } catch {
+      toast.error("请求失败");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -685,6 +710,7 @@ export default function ShippingRatesAdmin() {
                     <th className="px-3 py-3 font-medium text-slate-700">时效</th>
                     <th className="px-3 py-3 font-medium text-slate-700">起运重</th>
                     <th className="px-3 py-3 font-medium text-slate-700">重量上限</th>
+                    <th className="px-3 py-3 font-medium text-slate-700 w-20">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -739,6 +765,18 @@ export default function ShippingRatesAdmin() {
                       </td>
                       <td className="px-3 py-2 text-slate-600">{r.min_weight} kg</td>
                       <td className="px-3 py-2 text-slate-600">{r.max_weight != null ? `${r.max_weight} kg` : "—"}</td>
+                      <td className="px-3 py-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteRow(r)}
+                          disabled={deletingId === r.id}
+                          className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                          title="删除该条"
+                          aria-label="删除该条"
+                        >
+                          {deletingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

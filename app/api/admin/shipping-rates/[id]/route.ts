@@ -57,3 +57,30 @@ export async function PATCH(
   }
   return NextResponse.json(data);
 }
+
+/**
+ * DELETE /api/admin/shipping-rates/[id]
+ * 删除单条运费，数据库与前台运费试算共用同一表，删除后自动同步。
+ */
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const supabase = createServerSupabaseFromRequest(_request);
+  const auth = await requireAdmin(supabase);
+  if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const { id } = await params;
+  if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 });
+
+  const { error } = await (supabase as { from: (t: string) => { delete: () => { eq: (col: string, val: string) => Promise<{ error: { message?: string } | null }> } } })
+    .from("shipping_rates")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("[admin/shipping-rates DELETE]", error);
+    return NextResponse.json({ error: error?.message ?? "删除失败" }, { status: 500 });
+  }
+  return NextResponse.json({ success: true });
+}
