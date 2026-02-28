@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import ShippingRatesAdmin from "./ShippingRatesAdmin";
 import HomepageRemote from "./HomepageRemote";
+import ContactChannelsAdmin from "./ContactChannelsAdmin";
 import TreasurePublishCenter from "./TreasurePublishCenter";
 import LogisticsStoriesAdmin from "./LogisticsStoriesAdmin";
 import AboutPageRemote from "./AboutPageRemote";
@@ -467,6 +468,7 @@ export default function AdminControlPage() {
     { id: "admin-shipping", label: "运费管理" },
     { id: "admin-stories", label: "物流故事" },
     { id: "admin-homepage", label: "首页装修" },
+    { id: "admin-contact-channels", label: "客服渠道" },
     { id: "about-page", label: "关于我们" },
   ];
 
@@ -1086,6 +1088,9 @@ export default function AdminControlPage() {
       <section id="admin-homepage" className="mt-12 scroll-mt-24">
         <HomepageRemote />
       </section>
+
+      {/* 客服渠道：选择联系方式弹窗与浮窗 Instagram/Facebook */}
+      <ContactChannelsAdmin />
 
       {/* 关于我们页面内容管理 */}
       <AboutPageRemote />

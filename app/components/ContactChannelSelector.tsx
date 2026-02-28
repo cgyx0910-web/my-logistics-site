@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   getContactChannels,
+  getContactChannelsFromSettings,
   type ContactContext,
   type ContactChannelOption,
 } from "@/lib/contact";
@@ -60,7 +61,30 @@ export default function ContactChannelSelector({
   contactContext = null,
 }: ContactChannelSelectorProps) {
   const t = useTranslations("contact");
-  const channels = getContactChannels(contactContext);
+  const [siteSettings, setSiteSettings] = useState<Record<string, string> | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    fetch("/api/site-settings")
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data: Record<string, string>) => {
+        if (!cancelled && typeof data === "object" && data !== null) {
+          setSiteSettings(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSiteSettings({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  const channelsFromSettings =
+    siteSettings !== null ? getContactChannelsFromSettings(siteSettings, contactContext) : [];
+  const channels =
+    channelsFromSettings.length > 0 ? channelsFromSettings : getContactChannels(contactContext);
 
   const copyToClipboard = useCallback((text: string) => {
     if (typeof navigator?.clipboard?.writeText === "function") {
@@ -93,7 +117,7 @@ export default function ContactChannelSelector({
         window.open(opt.href, "_blank", "noopener,noreferrer");
       }
     },
-    [copyToClipboard, showToast]
+    [copyToClipboard, showToast, t]
   );
 
   useEffect(() => {

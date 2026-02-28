@@ -32,6 +32,11 @@ export default async function LocaleLayout({ children, params }: Props) {
     getSiteSettings(),
   ]);
   const whatsappLink = siteSettings.whatsapp_link?.trim() || undefined;
+  const igHandle = siteSettings.contact_instagram_handle?.trim();
+  const instagramLink = igHandle
+    ? `https://www.instagram.com/${igHandle.replace(/^@/, "")}/`
+    : undefined;
+  const facebookLink = siteSettings.contact_facebook_link?.trim() || undefined;
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
@@ -41,7 +46,11 @@ export default async function LocaleLayout({ children, params }: Props) {
             <FlashMessageBanner />
             <Navbar />
             {children}
-            <ContactFloat whatsappLink={whatsappLink} />
+            <ContactFloat
+              whatsappLink={whatsappLink}
+              instagramLink={instagramLink}
+              facebookLink={facebookLink}
+            />
           </AuthGate>
         </ToastProvider>
       </AuthProvider>

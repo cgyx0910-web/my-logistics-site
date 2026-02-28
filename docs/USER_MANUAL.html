@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>物流站点 — 功能与操作手册</title>
+  <style>
+    body { font-family: "Microsoft YaHei", "SimSun", sans-serif; font-size: 11pt; line-height: 1.5; margin: 2cm; }
+    h1 { font-size: 18pt; font-weight: bold; margin-top: 18pt; margin-bottom: 12pt; border-bottom: 1pt solid #333; }
+    h2 { font-size: 14pt; font-weight: bold; margin-top: 14pt; margin-bottom: 8pt; }
+    p { margin: 0 0 6pt 0; }
+    ul { margin: 6pt 0; padding-left: 24pt; }
+    li { margin-bottom: 4pt; }
+    strong { font-weight: bold; }
+    hr { border: none; border-top: 1pt solid #ccc; margin: 12pt 0; }
+    table { border-collapse: collapse; width: 100%; margin: 12pt 0; }
+    th, td { border: 1pt solid #333; padding: 6pt 8pt; text-align: left; }
+    th { background: #f0f0f0; font-weight: bold; }
+    .note { font-size: 9pt; color: #666; margin-top: 24pt; }
+  </style>
+</head>
+<body>
+
+<p style="font-size:9pt;color:#666;">使用说明：在 Microsoft Word 中打开本文件后，点击「文件」→「另存为」→ 选择「Word 文档 (*.docx)」即可得到 Word 文档。</p>
+<hr />
+
+<h1>物流站点 — 功能与操作手册</h1>
+<p>本文档分为<strong>客户端</strong>与<strong>管理员端</strong>两大部分，说明各功能与操作步骤。</p>
+
+<hr />
+<h1>一、客户端功能与操作手册</h1>
+
+<h2>1. 访问与导航</h2>
+<ul>
+  <li><strong>入口</strong>：在浏览器打开站点首页（如 https://你的域名/ 或本地 http://localhost:3000）。</li>
+  <li><strong>顶部导航</strong>：首页、运费计算、物流查询、积分商城、物流故事、关于我们。</li>
+  <li><strong>语言切换</strong>：导航栏提供语言切换（如 中文/English），切换后整站文案随之变化。</li>
+  <li><strong>移动端</strong>：点击右上角菜单图标可展开/收起导航与用户入口。</li>
+</ul>
+
+<h2>2. 登录与注册</h2>
+<ul>
+  <li><strong>入口</strong>：未登录时，点击导航栏「登录/注册」打开弹窗。</li>
+  <li><strong>登录</strong>：选择「登录」标签，输入邮箱、密码，点击登录。登录成功后弹窗关闭，导航栏显示个人中心、积分、签到、退出。</li>
+  <li><strong>注册</strong>：选择「注册」标签，填写邮箱、密码、姓名（可选），提交后根据站点配置可能需在邮箱中确认；确认后可登录。</li>
+  <li><strong>签到</strong>：登录后每日可点击「签到」领取积分（具体积分值由后台站点设置决定）。</li>
+</ul>
+
+<h2>3. 首页</h2>
+<ul>
+  <li><strong>Banner</strong>：顶部大图或渐变背景，由管理员在「首页装修」中配置。</li>
+  <li><strong>公告</strong>：若有配置，顶部会显示横向滚动公告文字。</li>
+  <li><strong>快捷入口</strong>：三个主按钮——运费计算、物流查询、积分商城（图标可由管理员配置）。</li>
+  <li><strong>运费计算器</strong>：首页内嵌一段运费估算（目的地、运输方式、尺寸重量、计算）；可跳转到「运费计算」页进行完整操作并下单。</li>
+  <li><strong>物流查询</strong>：首页内嵌单号查询框，输入单号即可查物流轨迹。</li>
+  <li><strong>积分商城</strong>：展示积分淘货商品列表（直拍/竞拍），点击可进入商品详情或直接兑换/出价。</li>
+  <li><strong>物流故事</strong>：展示故事卡片列表，点击进入故事详情。</li>
+  <li><strong>服务介绍</strong>：底部有服务简介与说明。</li>
+</ul>
+
+<h2>4. 运费计算（/shipping-calc）</h2>
+<ul>
+  <li><strong>用途</strong>：按目的地、运输方式、包裹尺寸与重量估算计费重与运费，并可创建集运订单。</li>
+  <li><strong>操作步骤</strong>：</li>
+  <ol style="padding-left:24pt;">
+    <li>选择<strong>目的地</strong>（如台湾 tw、泰国 th、柬埔寨 kh、马来西亚 my、印尼 id 等）。</li>
+    <li>选择<strong>运输方式</strong>（根据目的地动态显示可选方式）。</li>
+    <li>填写<strong>长、宽、高</strong>（cm）和<strong>实际重量</strong>（kg）。系统按体积重（长×宽×高/6000）与实重取大者作为计费重。</li>
+    <li>点击「计算」得到：计费重、单价、预估运费。</li>
+  </ol>
+  <li><strong>保存为订单</strong>：计算完成后，若已登录，可点击「保存为订单」：系统会创建一笔待确认的集运订单（状态「待确认」），并弹出成功提示（含订单 ID、单号、运费）。未登录会提示先登录。</li>
+  <li><strong>后续</strong>：在「个人中心」→「我的订单」中可对该订单补全物流信息、上传支付凭证等。</li>
+</ul>
+
+<h2>5. 物流查询（/tracking）</h2>
+<ul>
+  <li><strong>用途</strong>：凭物流单号查询订单状态与物流轨迹（无需登录）。</li>
+  <li><strong>操作</strong>：在输入框输入单号，点击「查询」。若存在该单号，会显示订单状态与时间轴形式的物流进度（状态标题、地点、描述、时间）。</li>
+</ul>
+
+<h2>6. 积分商城（/points-shop）</h2>
+<ul>
+  <li><strong>列表页</strong>：展示所有上架中的积分淘货商品（名称、图、所需积分、标签、直拍/竞拍等）。</li>
+  <li><strong>商品详情页</strong>（/points-shop/[id]）：可查看多图轮播、名称、描述、起拍/直拍积分、预设运费、库存等；支持「立即出价」或「立即兑换」。</li>
+  <li><strong>直拍商品</strong>：点击「立即兑换」后，若积分足够则扣减积分、扣减库存，并生成一笔淘货订单（类型为「自营」），需支付预设运费；提示去个人中心完成后续步骤。</li>
+  <li><strong>竞拍商品</strong>：点击「立即出价」后，若积分不少于起拍积分则参与竞拍（扣减起拍积分），竞拍结束后由管理员「结拍」；中标者自动生成订单，未中标者积分退回。</li>
+  <li><strong>积分不足</strong>：会提示当前积分与所需积分，需先通过签到或订单完成后获得积分。</li>
+</ul>
+
+<h2>7. 物流故事（/stories、/stories/[id]）</h2>
+<ul>
+  <li><strong>列表</strong>：展示所有已发布的物流故事卡片（封面图、标题、摘要、日期），点击进入详情。</li>
+  <li><strong>详情</strong>：展示故事标题、分类、正文内容与发布时间（内容由管理员在后台维护）。</li>
+</ul>
+
+<h2>8. 关于我们（/about）</h2>
+<ul>
+  <li><strong>内容</strong>：公司简介、服务宗旨、配图、联系说明、WhatsApp 链接等，均由管理员在「关于我们」后台配置；若未配置则显示默认文案。</li>
+</ul>
+
+<h2>9. 个人中心 / 我的订单（/dashboard）</h2>
+<ul>
+  <li><strong>入口</strong>：登录后点击导航栏「个人中心」。</li>
+  <li><strong>信息展示</strong>：当前登录邮箱、积分余额。</li>
+  <li><strong>我的订单</strong>：列表展示当前用户全部订单，每条显示：单号（或「待分配」）、状态、运费、订单类型（淘货会标「自营」）、创建日期。</li>
+  <li><strong>待确认 + 未补全运单</strong>：若订单状态为「待确认」且未填齐货物品名与收寄信息，会提示「请补全物流信息」；点击订单进入详情页可填写。</li>
+  <li><strong>待确认 + 已补全</strong>：显示「信息已完整，等待客服确认」等提示。</li>
+</ul>
+
+<h2>10. 订单详情（/dashboard/orders/[id]）</h2>
+<ul>
+  <li><strong>入口</strong>：在个人中心订单列表中点击某条订单。</li>
+  <li><strong>通用</strong>：顶部有「后续步骤指引」与「联系客服」按钮；联系客服时可选择渠道（如 WhatsApp、Line 等），并自动携带订单号等咨询文案。物流详情：单号、状态、运费；若有收货人/寄件人/货物品名会一并展示。物流时间轴：按时间倒序展示每条轨迹（状态标题、地点、描述、时间）。</li>
+  <li><strong>集运订单（非淘货）</strong>：待确认时需补全「货物品名」「寄件人」「收件人」信息，提交后等待客服确认。可录入发往集运仓的国内快递单号并保存。支付凭证：上传支付凭证图片（JPG/PNG/WebP/GIF，≤5MB），可查看、重新上传。</li>
+  <li><strong>淘货订单（自营）</strong>：无需寄送集运仓；需支付预设运费。可填写/修改「收货人姓名、电话、地址」并保存。上传支付凭证后等待管理员确认收款与发货；可查看物流时间轴。</li>
+  <li><strong>商品信息</strong>：若为淘货订单，会展示所兑换商品名称与图片。</li>
+</ul>
+
+<hr />
+<h1>二、管理员端功能与操作手册</h1>
+
+<h2>1. 访问与权限</h2>
+<ul>
+  <li><strong>入口</strong>：使用<strong>管理员账号</strong>登录后，导航栏会出现「管理后台」链接；点击进入 /admin-control。</li>
+  <li><strong>权限</strong>：仅 profiles.role = 'admin' 的用户可访问；非管理员访问会提示「权限不足」并在约 3 秒后跳转首页。</li>
+  <li><strong>待处理提示</strong>：管理员在导航栏可看到待处理订单数量角标（如有），便于快速进入订单管理。</li>
+</ul>
+
+<h2>2. 后台整体布局</h2>
+<ul>
+  <li><strong>左侧导航</strong>：订单管理、竞拍结拍、淘货商品、淘货发布、运费管理、物流故事、首页装修、关于我们；点击锚点滚动到对应区块。</li>
+  <li><strong>右侧内容</strong>：各功能区块自上而下排列，同一页内可滚动操作。</li>
+</ul>
+
+<h2>3. 订单管理</h2>
+<ul>
+  <li><strong>筛选</strong>：按订单状态、单号（模糊）、用户邮箱（模糊）、货物品名（模糊）筛选，点击「筛选」刷新列表。</li>
+  <li><strong>列表字段</strong>：订单号、单号、用户邮箱、货物品名、状态、运费、支付凭证缩略图、创建时间、操作。</li>
+  <li><strong>淘货订单</strong>：货物品名前列有「自营」标签。</li>
+  <li><strong>操作</strong>：确认收款（将订单推进为已支付等）；一键发货（仅淘货且待出库，写入轨迹并更新为运输中）；确认结算（完成订单并发放积分）；更新进度（新增物流轨迹）；状态下拉（直接改状态）；管理轨迹（跳转详情页）；凭证查看（放大支付凭证）。</li>
+</ul>
+
+<h2>4. 管理轨迹（/admin-control/orders/[id]）</h2>
+<ul>
+  <li><strong>入口</strong>：在订单管理列表中点击某订单的「管理轨迹」。</li>
+  <li><strong>订单信息</strong>：可编辑并保存「物流单号」；提供「生成单号」按钮（格式如 EX+UUID 前 8 位）。</li>
+  <li><strong>新增轨迹</strong>：选择预设状态或「自定义」输入状态标题，可选填地点、描述；可同时更新订单状态。保存后时间轴即更新。</li>
+  <li><strong>确认收款 / 确认结算</strong>：与订单管理列表中的操作一致，可在本页完成。</li>
+</ul>
+
+<h2>5. 竞拍结拍</h2>
+<ul>
+  <li><strong>说明</strong>：仅展示「积分竞拍」且未结拍的商品（有结束时间、未执行结拍）。</li>
+  <li><strong>操作</strong>：对到期竞拍点击「结拍」。系统会确定最高出价者、为其生成物流订单、退还未中标者积分；结拍成功后提示生成订单 ID。</li>
+</ul>
+
+<h2>6. 淘货商品管理</h2>
+<ul>
+  <li><strong>列表</strong>：展示所有积分淘货商品（名称、起拍积分、预设运费、库存、标签、类型直拍/竞拍）；支持「编辑」。</li>
+  <li><strong>新增商品</strong>：商品名称、描述、商品图片（可选，≤2MB，上传前会压缩为 WebP）；起拍积分、直拍积分（可选）、预设运费（元）、库存、标签、按钮文案、排序、是否竞拍、竞拍结束时间（竞拍时必填）。</li>
+  <li><strong>说明</strong>：兑换/竞拍生成订单时，将使用该商品的「预设运费」作为订单运费。</li>
+</ul>
+
+<h2>7. 淘货发布中心</h2>
+<ul>
+  <li><strong>多图上传</strong>：支持一次选择多张图片，自动压缩后上传至商品图库（WebP）；上传成功的 URL 会加入列表供发布时选用。</li>
+  <li><strong>发布新商品</strong>：填写名称、描述、所需积分、预设运费、库存等，选择已上传的图片（可多图），选择「直拍」或「竞拍」及结束时间，提交后生成新淘货商品并上架。</li>
+  <li><strong>列表</strong>：展示已发布商品，支持「下架」「删除」等操作。</li>
+</ul>
+
+<h2>8. 运费管理</h2>
+<ul>
+  <li><strong>列表</strong>：查看当前所有运费配置（国家、运输方式、单价、起运重、重量上限、币种、时效等）；支持单元格内编辑「单价」「时效」并保存。</li>
+  <li><strong>CSV 上传</strong>：下载空白或带示例的 CSV 模板（表头：country, method, price_per_kg, min_weight, estimated_days 等）；填写或映射表头后上传；支持「Dry Run」预览，确认后再执行导入。</li>
+  <li><strong>调价</strong>：支持按比例或固定值批量调整某国家/某方式的单价。</li>
+  <li><strong>历史</strong>：可查看运费变更历史（若有）。</li>
+</ul>
+
+<h2>9. 物流故事</h2>
+<ul>
+  <li><strong>列表</strong>：展示所有物流故事（标题、封面、创建时间）；支持新增、编辑、删除。</li>
+  <li><strong>新增/编辑</strong>：填写标题、分类（如避坑指南、时效预警、客户案例、其他）、摘要、正文；上传封面图（自动压缩后上传至站点资源）。保存后前台列表与详情页即更新。</li>
+</ul>
+
+<h2>10. 首页装修</h2>
+<ul>
+  <li><strong>配置项</strong>：首页 Banner URL、客服 WhatsApp 链接、滚动公告文字等。</li>
+  <li><strong>操作</strong>：在输入框中填写或修改 URL/文字，点击「保存」；保存后首页立即拉取最新配置生效。</li>
+</ul>
+
+<h2>11. 关于我们</h2>
+<ul>
+  <li><strong>配置项</strong>：关于我们 Hero 图、标题、副标题、公司简介（多行）、服务宗旨（多行）、配图 URL、联系我们说明、WhatsApp 链接等。</li>
+  <li><strong>操作</strong>：编辑各字段后保存；关于我们页面会立即使用最新内容。</li>
+</ul>
+
+<h2>12. 站点设置与上传</h2>
+<ul>
+  <li><strong>站点设置</strong>：通过「首页装修」「关于我们」等区块对 site_settings 进行 upsert；部分配置（如签到积分、体积重系数等）可能在数据库或其它管理界面中维护。</li>
+  <li><strong>上传</strong>：商品图片（淘货商品编辑/淘货发布中心，product-images 桶）；支付凭证（用户前台上传，payment-proofs 桶）；站点资源（物流故事封面等，site-assets 桶）。</li>
+</ul>
+
+<hr />
+<h1>三、订单状态与流程简述</h1>
+<ul>
+  <li><strong>集运订单</strong>：待确认 → 用户补全运单信息 → 客服确认 → 待付款/待支付运费 → 用户上传支付凭证 → 确认收款 → 待出库 → 已入库/运输中 → … → 已完成 → 确认结算（发积分）。</li>
+  <li><strong>淘货订单</strong>：生成后为待确认/待支付运费 → 用户填收货人、上传支付凭证 → 确认收款 → 待出库 → 管理员「一键发货」→ 运输中 → … → 已完成 → 确认结算（发积分）。</li>
+</ul>
+
+<hr />
+<h1>四、环境与依赖说明</h1>
+<ul>
+  <li>站点数据与用户认证依赖 <strong>Supabase</strong>（项目 URL 与 anon key 配置于 .env.local）。</li>
+  <li>后台管理员需在 Supabase 的 profiles 表中将对应用户的 role 设为 admin。</li>
+  <li>首次部署或更换 Supabase 项目时，请参考 SUPABASE_SWITCH_CHECKLIST.md 与 STORAGE_SETUP.md 完成迁移与存储桶配置。</li>
+</ul>
+
+<hr />
+<h1>五、客户端与管理员端路由速查</h1>
+<table>
+  <tr><th>类型</th><th>路径</th><th>说明</th></tr>
+  <tr><td>客户端</td><td>/</td><td>首页</td></tr>
+  <tr><td>客户端</td><td>/shipping-calc</td><td>运费计算</td></tr>
+  <tr><td>客户端</td><td>/tracking</td><td>物流查询</td></tr>
+  <tr><td>客户端</td><td>/points-shop</td><td>积分商城列表</td></tr>
+  <tr><td>客户端</td><td>/points-shop/[id]</td><td>商品详情</td></tr>
+  <tr><td>客户端</td><td>/stories</td><td>物流故事列表</td></tr>
+  <tr><td>客户端</td><td>/stories/[id]</td><td>故事详情</td></tr>
+  <tr><td>客户端</td><td>/about</td><td>关于我们</td></tr>
+  <tr><td>客户端</td><td>/dashboard</td><td>个人中心（我的订单）</td></tr>
+  <tr><td>客户端</td><td>/dashboard/orders/[id]</td><td>订单详情</td></tr>
+  <tr><td>管理员</td><td>/admin-control</td><td>管理后台</td></tr>
+  <tr><td>管理员</td><td>/admin-control/orders/[id]</td><td>订单轨迹管理</td></tr>
+</table>
+
+<hr />
+<p class="note">文档版本与项目代码同步，若功能有增删请以实际界面与接口为准。</p>
+
+</body>
+</html>

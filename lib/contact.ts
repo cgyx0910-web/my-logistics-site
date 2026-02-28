@@ -1,13 +1,17 @@
 /**
  * 五合一全渠道联系方式
- * 所有账号从 .env.local 读取；未配置的渠道在前端不展示。
+ * 优先从后台 site_settings 读取（getContactChannelsFromSettings），未配置时从环境变量读取（getContactChannels）。
  *
- * 环境变量：
+ * 环境变量（兜底）：
  * - NEXT_PUBLIC_WHATSAPP_NUMBER  如 8613800138000（国际格式无+）
  * - NEXT_PUBLIC_LINE              Line 客服链接（完整 URL）
  * - NEXT_PUBLIC_TELEGRAM          Telegram 用户名或 t.me/xxx 链接
  * - NEXT_PUBLIC_INSTAGRAM_HANDLE  Instagram 用户名（可带 @）
  * - NEXT_PUBLIC_WECHAT_ID         微信号（用于一键复制）
+ *
+ * 后台 site_settings 的 key（与客服渠道表单一致）：
+ * - contact_whatsapp_number  contact_line_link  contact_telegram
+ * - contact_instagram_handle  contact_facebook_link  contact_wechat_id
  */
 
 const ORDER_MESSAGE = (orderLabel: string) =>
@@ -156,6 +160,83 @@ export function getContactChannels(ctx: ContactContext | null): ContactChannelOp
       color: "#07C160",
       action: "copy",
       wechatId: wechat.wechatId,
+    });
+  }
+
+  return list;
+}
+
+/** 从 site_settings 键值生成渠道列表；未配置的 key 不返回该渠道。 */
+export function getContactChannelsFromSettings(
+  settings: Record<string, string | null | undefined>,
+  ctx: ContactContext | null = null
+): ContactChannelOption[] {
+  const message = getOrderConsultMessage(ctx);
+  const list: ContactChannelOption[] = [];
+  const get = (key: string) => (settings[key] ?? "").trim();
+
+  const whatsappNum = get("contact_whatsapp_number");
+  if (whatsappNum) {
+    const num = whatsappNum.replace(/\D/g, "");
+    if (num) {
+      list.push({
+        id: "whatsapp",
+        label: "WhatsApp",
+        color: "#25D366",
+        action: "open",
+        href: `https://wa.me/${num}?text=${encodeURIComponent(message)}`,
+      });
+    }
+  }
+
+  const lineUrl = get("contact_line_link");
+  if (lineUrl) {
+    const separator = lineUrl.includes("?") ? "&" : "?";
+    list.push({
+      id: "line",
+      label: "Line",
+      color: "#00B900",
+      action: "open",
+      href: `${lineUrl}${separator}text=${encodeURIComponent(message)}`,
+      message,
+    });
+  }
+
+  const telegramRaw = get("contact_telegram");
+  if (telegramRaw) {
+    const handle = telegramRaw.replace(/^https?:\/\/t\.me\/?/i, "").replace(/^@/, "").split("?")[0];
+    if (handle) {
+      list.push({
+        id: "telegram",
+        label: "Telegram",
+        color: "#0088CC",
+        action: "open",
+        href: `https://t.me/${handle}`,
+        message,
+      });
+    }
+  }
+
+  const igHandle = get("contact_instagram_handle");
+  if (igHandle) {
+    const user = igHandle.replace(/^@/, "");
+    list.push({
+      id: "instagram",
+      label: "Instagram",
+      color: "#E4405F",
+      action: "open",
+      href: `https://www.instagram.com/${user}/`,
+    });
+  }
+
+  const wechatId = get("contact_wechat_id");
+  if (wechatId) {
+    list.push({
+      id: "wechat",
+      label: "微信",
+      color: "#07C160",
+      action: "copy",
+      wechatId,
     });
   }
 
