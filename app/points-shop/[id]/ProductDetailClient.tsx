@@ -4,11 +4,13 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { AuctionProductRow } from "@/types/database";
 import { useAuth } from "@/app/context/AuthContext";
+import { useAuthModal } from "@/app/context/AuthModalContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ProductDetailClient({ product }: { product: AuctionProductRow }) {
   const router = useRouter();
   const { user, profile, getAccessToken, refreshProfile } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const [bidding, setBidding] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -50,7 +52,7 @@ export default function ProductDetailClient({ product }: { product: AuctionProdu
 
   const handleBidOrExchange = async () => {
     if (!user) {
-      router.push("/login");
+      openAuthModal();
       return;
     }
     if (isAuction) {
@@ -73,6 +75,8 @@ export default function ProductDetailClient({ product }: { product: AuctionProdu
         if (res.ok) {
           await refreshProfile();
           alert("出价成功");
+        } else if (res.status === 401) {
+          openAuthModal();
         } else {
           if (process.env.NODE_ENV !== "production") {
             console.error("[淘货出价] 接口失败:", res.status, data);
@@ -112,6 +116,8 @@ export default function ProductDetailClient({ product }: { product: AuctionProdu
           } else {
             alert("兑换成功");
           }
+        } else if (res.status === 401) {
+          openAuthModal();
         } else {
           if (process.env.NODE_ENV !== "production") {
             console.error("[淘货兑换] 接口失败:", res.status, data);

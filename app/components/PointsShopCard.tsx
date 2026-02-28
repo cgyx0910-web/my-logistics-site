@@ -5,6 +5,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import type { AuctionProductRow } from "@/types/database";
 import { useAuth } from "@/app/context/AuthContext";
+import { useAuthModal } from "@/app/context/AuthModalContext";
 
 const PLACEHOLDER_BGS = ["bg-amber-100", "bg-orange-100", "bg-yellow-100", "bg-amber-50"] as const;
 
@@ -18,6 +19,7 @@ export default function PointsShopCard({
   const t = useTranslations("pointsShop");
   const router = useRouter();
   const { user, profile, getAccessToken, refreshProfile } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const [bidding, setBidding] = useState(false);
 
   const isAuction = product.is_auction ?? (product.tag === "积分竞拍");
@@ -29,7 +31,7 @@ export default function PointsShopCard({
 
   const handleBidOrExchange = async () => {
     if (!user) {
-      alert(t("pleaseLogin"));
+      openAuthModal();
       return;
     }
     if (isAuction) {
@@ -55,6 +57,8 @@ export default function PointsShopCard({
         if (res.ok) {
           await refreshProfile();
           alert(t("bidSuccess"));
+        } else if (res.status === 401) {
+          openAuthModal();
         } else {
           if (process.env.NODE_ENV !== "production") {
             console.error("[淘货出价] 接口失败:", res.status, data);
@@ -97,6 +101,8 @@ export default function PointsShopCard({
           } else {
             alert(t("exchangeSuccess"));
           }
+        } else if (res.status === 401) {
+          openAuthModal();
         } else {
           if (process.env.NODE_ENV !== "production") {
             console.error("[淘货兑换] 接口失败:", res.status, data);

@@ -10,7 +10,11 @@ import ContactFloat from "@/app/components/ContactFloat";
 import FlashMessageBanner from "@/app/components/FlashMessageBanner";
 import AuthGate from "@/app/components/AuthGate";
 import { AuthProvider } from "@/app/context/AuthContext";
+import { AuthModalProvider } from "@/app/context/AuthModalContext";
 import { ToastProvider } from "@/app/context/ToastContext";
+
+// 每次请求拉取最新 site_settings，保证客服浮窗展示最新客服渠道
+export const dynamic = "force-dynamic";
 
 type Props = {
   children: React.ReactNode;
@@ -52,14 +56,16 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-        <ToastProvider>
-          <AuthGate>
-            <FlashMessageBanner />
-            <Navbar />
-            {children}
-            <ContactFloat channels={floatChannels} />
-          </AuthGate>
-        </ToastProvider>
+        <AuthModalProvider>
+          <ToastProvider>
+            <AuthGate>
+              <FlashMessageBanner />
+              <Navbar />
+              {children}
+              <ContactFloat channels={floatChannels} />
+            </AuthGate>
+          </ToastProvider>
+        </AuthModalProvider>
       </AuthProvider>
     </NextIntlClientProvider>
   );

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, MessageCircle, Package } from "lucide-react";
+import { CheckCircle2, MessageCircle, Package, X } from "lucide-react";
 import { getOrderLabel, type ContactContext } from "@/lib/contact";
 import ContactChannelSelector from "./ContactChannelSelector";
 
@@ -42,7 +42,15 @@ export default function OrderSuccessModal({
       aria-modal="true"
       aria-labelledby="order-success-title"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-xl">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-3 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+          aria-label={t("close")}
+        >
+          <X className="h-5 w-5" />
+        </button>
         <div className="p-6 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
             <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden />

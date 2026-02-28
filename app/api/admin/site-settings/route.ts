@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseFromRequest, toProfileId, type ServerSupabaseClient } from "@/lib/supabase/server";
+import { routing } from "@/i18n/routing";
 
 async function requireAdmin(supabase: ServerSupabaseClient) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -69,5 +70,7 @@ export async function PATCH(request: Request) {
 
   revalidatePath("/");
   revalidatePath("/about");
+  // 使带客服浮窗的 [locale] layout 重新拉取 site_settings，浮窗才能展示最新客服渠道
+  routing.locales.forEach((locale) => revalidatePath(`/${locale}`, "layout"));
   return NextResponse.json({ success: true, updated: rows.length });
 }

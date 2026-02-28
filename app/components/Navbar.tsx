@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/app/context/AuthContext";
-import LoginRegisterModal from "./LoginRegisterModal";
+import { useAuthModal } from "@/app/context/AuthModalContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { LogIn, LogOut, User, Gift } from "lucide-react";
 
@@ -21,10 +21,10 @@ export default function Navbar() {
   const t = useTranslations("nav");
   const tAlerts = useTranslations("alerts");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [adminPendingCount, setAdminPendingCount] = useState<number>(0);
   const { user, profile, loading, signOut, refreshProfile, getAccessToken } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   useEffect(() => {
     if (!user || profile?.role !== "admin") {
@@ -143,7 +143,7 @@ export default function Navbar() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setAuthModalOpen(true)}
+                  onClick={() => openAuthModal()}
                   className="flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white hover:bg-white/25"
                 >
                   <LogIn className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function Navbar() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
+                    onClick={() => { openAuthModal(); setMobileMenuOpen(false); }}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-white hover:bg-white/10"
                   >
                     <LogIn className="h-4 w-4" />
@@ -251,7 +251,6 @@ export default function Navbar() {
         </div>
       )}
 
-      <LoginRegisterModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </header>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/app/context/AuthContext";
+import { useAuthModal } from "@/app/context/AuthModalContext";
 import OrderSuccessModal from "./OrderSuccessModal";
 
 const VOLUME_DIVISOR = 6000;
@@ -45,6 +46,7 @@ export default function FreightCalculator() {
     shippingFee: number;
   } | null>(null);
   const { getAccessToken } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   useEffect(() => {
     let cancelled = false;
@@ -319,7 +321,7 @@ export default function FreightCalculator() {
                 onClick={async () => {
                   const token = await getAccessToken();
                   if (!token) {
-                    alert(t("loginToSave"));
+                    openAuthModal();
                     return;
                   }
                   setSavingOrder(true);
@@ -339,6 +341,8 @@ export default function FreightCalculator() {
                         trackingNumber: data.tracking_number ?? null,
                         shippingFee: result.totalFreight,
                       });
+                    } else if (res.status === 401) {
+                      openAuthModal();
                     } else {
                       alert(data?.error ?? t("saveOrderFailed"));
                     }
