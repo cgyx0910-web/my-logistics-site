@@ -17,7 +17,7 @@
 const ORDER_MESSAGE = (orderLabel: string) =>
   `您好，我想咨询订单 ${orderLabel} 的详细情况。`;
 
-export type ContactChannelId = "whatsapp" | "line" | "telegram" | "instagram" | "wechat";
+export type ContactChannelId = "whatsapp" | "line" | "telegram" | "instagram" | "facebook" | "wechat";
 
 export type ContactContext = {
   orderId: string;
@@ -226,6 +226,17 @@ export function getContactChannelsFromSettings(
       color: "#E4405F",
       action: "open",
       href: `https://www.instagram.com/${user}/`,
+    });
+  }
+
+  const fbLink = get("contact_facebook_link");
+  if (fbLink) {
+    list.push({
+      id: "facebook",
+      label: "Facebook",
+      color: "#1877F2",
+      action: "open",
+      href: fbLink,
     });
   }
 
