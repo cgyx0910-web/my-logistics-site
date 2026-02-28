@@ -16,11 +16,11 @@ export async function GET(
 
   const { data: orderData } = await supabase
     .from("shipping_orders")
-    .select("id, tracking_number, status, shipping_fee, fixed_shipping_fee, payment_proof_url, domestic_tracking_number, cargo_details, sender_name, sender_phone, sender_address, receiver_name, receiver_phone, receiver_address, order_type, auction_product_id")
+    .select("id, tracking_number, status, shipping_fee, fixed_shipping_fee, payment_proof_url, domestic_tracking_number, cargo_details, sender_name, sender_phone, sender_address, receiver_name, receiver_phone, receiver_address, order_type, auction_product_id, cancel_requested_by")
     .eq("id", orderId)
     .eq("user_id", user.id)
     .single();
-  type OrderRow = { id: string; tracking_number: string | null; status: string; shipping_fee: number; fixed_shipping_fee: number | null; payment_proof_url: string | null; domestic_tracking_number: string | null; cargo_details: string | null; sender_name: string | null; sender_phone: string | null; sender_address: string | null; receiver_name: string | null; receiver_phone: string | null; receiver_address: string | null; order_type: string; auction_product_id: string | null };
+  type OrderRow = { id: string; tracking_number: string | null; status: string; shipping_fee: number; fixed_shipping_fee: number | null; payment_proof_url: string | null; domestic_tracking_number: string | null; cargo_details: string | null; sender_name: string | null; sender_phone: string | null; sender_address: string | null; receiver_name: string | null; receiver_phone: string | null; receiver_address: string | null; order_type: string; auction_product_id: string | null; cancel_requested_by: string | null };
   const order = orderData as OrderRow | null;
 
   if (!order) return NextResponse.json({ error: "订单不存在或无权查看" }, { status: 404 });
@@ -66,6 +66,7 @@ export async function GET(
       receiver_address: order.receiver_address ?? null,
       order_type: order.order_type ?? "logistics",
       auction_product_id: order.auction_product_id ?? null,
+      cancel_requested_by: order.cancel_requested_by ?? null,
       product_summary: product_summary,
     },
     logs: logs ?? [],

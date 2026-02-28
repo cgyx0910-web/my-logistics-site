@@ -32,6 +32,7 @@ type Order = {
   receiver_name?: string | null;
   receiver_phone?: string | null;
   receiver_address?: string | null;
+  cancel_requested_by?: string | null;
 };
 type Log = { id: string; status_title: string; location: string | null; description: string | null; created_at: string };
 
@@ -55,6 +56,7 @@ export default function AdminOrderDetailPage() {
   const [orderStatus, setOrderStatus] = useState("");
   const [trackingNumberInput, setTrackingNumberInput] = useState("");
   const [savingTrackingNumber, setSavingTrackingNumber] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     const token = await getAccessToken();
@@ -179,6 +181,66 @@ export default function AdminOrderDetailPage() {
     }
   };
 
+  const handleConfirmCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/admin/orders/${id}/confirm-cancel`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await fetchDetail();
+        toast.success(data.message ?? "订单已取消");
+      } else {
+        toast.error(data.error ?? "操作失败");
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const handleRejectCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/admin/orders/${id}/reject-cancel`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await fetchDetail();
+        toast.success(data.message ?? "已不同意取消");
+      } else {
+        toast.error(data.error ?? "操作失败");
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const handleRequestCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/admin/orders/${id}/request-cancel`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await fetchDetail();
+        toast.success(data.message ?? "已申请取消");
+      } else {
+        toast.error(data.error ?? "操作失败");
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   if (loading || !order) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -288,14 +350,54 @@ export default function AdminOrderDetailPage() {
         </div>
         <button
           type="button"
-          disabled={order.status === "已完成" || settling}
+          disabled={order.status === "已完成" || order.status === "已取消" || settling}
           onClick={handleSettle}
-          title={order.status === "已完成" ? "已结算，不可重复操作" : "完成订单并发放积分（实付金额 1:1）"}
+          title={order.status === "已完成" ? "已结算，不可重复操作" : order.status === "已取消" ? "订单已取消" : "完成订单并发放积分（实付金额 1:1）"}
           className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {settling ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {order.status === "已完成" ? "已结算" : "确认结算"}
         </button>
+
+        {order.status === "待确认" && (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+            <h3 className="text-sm font-semibold text-slate-800">订单取消（仅待确认时可申请取消，需双方同意后生效）</h3>
+            {order.cancel_requested_by === "customer" && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <p className="text-sm font-medium text-amber-800">客户已申请取消</p>
+                <button
+                  type="button"
+                  onClick={handleConfirmCancel}
+                  disabled={cancelLoading}
+                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+                >
+                  {cancelLoading ? "处理中…" : "同意"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRejectCancel}
+                  disabled={cancelLoading}
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                >
+                  不同意
+                </button>
+              </div>
+            )}
+            {order.cancel_requested_by === "admin" && (
+              <p className="mt-2 text-sm text-slate-600">管理员已申请取消，待客户在订单详情页同意后生效</p>
+            )}
+            {!order.cancel_requested_by && (
+              <button
+                type="button"
+                onClick={handleRequestCancel}
+                disabled={cancelLoading}
+                className="mt-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {cancelLoading ? "提交中…" : "申请取消（需客户同意）"}
+              </button>
+            )}
+          </div>
+        )}
 
         {order.payment_proof_url && (
           <div className="mt-4 border-t border-slate-200 pt-4">

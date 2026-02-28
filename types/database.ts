@@ -114,10 +114,12 @@ export interface Database {
           order_type: string;
           auction_product_id: string | null;
           auction_bid_id: string | null;
+          cancel_requested_by: string | null;
+          cancel_requested_at: string | null;
           created_at: string;
           updated_at: string;
         };
-        Insert: { id?: string; user_id: string; tracking_number?: string | null; status?: string; shipping_fee?: number; fixed_shipping_fee?: number | null; points_awarded?: number; payment_proof_url?: string | null; domestic_tracking_number?: string | null; cargo_details?: string | null; sender_name?: string | null; sender_phone?: string | null; sender_address?: string | null; receiver_name?: string | null; receiver_phone?: string | null; receiver_address?: string | null; source_type?: string; order_type?: string; auction_product_id?: string | null; auction_bid_id?: string | null; created_at?: string; updated_at?: string };
+        Insert: { id?: string; user_id: string; tracking_number?: string | null; status?: string; shipping_fee?: number; fixed_shipping_fee?: number | null; points_awarded?: number; payment_proof_url?: string | null; domestic_tracking_number?: string | null; cargo_details?: string | null; sender_name?: string | null; sender_phone?: string | null; sender_address?: string | null; receiver_name?: string | null; receiver_phone?: string | null; receiver_address?: string | null; source_type?: string; order_type?: string; auction_product_id?: string | null; auction_bid_id?: string | null; cancel_requested_by?: string | null; cancel_requested_at?: string | null; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["shipping_orders"]["Insert"]>;
       };
       sign_ins: {

@@ -26,6 +26,7 @@ type Order = {
   receiver_address: string | null;
   order_type?: string;
   product_summary?: { name: string; image_url: string | null } | null;
+  cancel_requested_by?: string | null;
 };
 type Log = {
   id: string;
@@ -65,6 +66,7 @@ export default function DashboardOrderDetailPage() {
   const [savingReceiver, setSavingReceiver] = useState(false);
   const [uploadingProof, setUploadingProof] = useState(false);
   const [proofModalUrl, setProofModalUrl] = useState<string | null>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [domestic_tracking_number, setDomesticTrackingNumber] = useState("");
@@ -235,6 +237,48 @@ export default function DashboardOrderDetailPage() {
     }
   };
 
+  const handleRequestCancel = async () => {
+    if (!order || order.status !== "待确认") return;
+    setCancelLoading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/orders/${id}/request-cancel`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await fetchDetail();
+        toast.success(data.message ?? "已提交取消申请");
+      } else {
+        toast.error(data.error ?? "操作失败");
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!order || order.status !== "待确认" || order.cancel_requested_by !== "admin") return;
+    setCancelLoading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/orders/${id}/confirm-cancel`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await fetchDetail();
+        toast.success(data.message ?? "订单已取消");
+      } else {
+        toast.error(data.error ?? "操作失败");
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   if (loading || !order) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -292,6 +336,38 @@ export default function DashboardOrderDetailPage() {
           onClose={() => setContactSelectorOpen(false)}
           contactContext={contactContext}
         />
+
+        {order.status === "待确认" && (
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="mb-3 text-sm text-slate-600">若不需要此订单，可申请取消（仅待确认时可操作）</p>
+            {!order.cancel_requested_by && (
+              <button
+                type="button"
+                onClick={handleRequestCancel}
+                disabled={cancelLoading}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              >
+                {cancelLoading ? "提交中…" : "不想要了，申请取消订单"}
+              </button>
+            )}
+            {order.cancel_requested_by === "customer" && (
+              <p className="text-sm font-medium text-amber-800">您已申请取消，等待管理员同意</p>
+            )}
+            {order.cancel_requested_by === "admin" && (
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-sm font-medium text-slate-700">管理员申请取消该订单，是否同意？</p>
+                <button
+                  type="button"
+                  onClick={handleConfirmCancel}
+                  disabled={cancelLoading}
+                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+                >
+                  {cancelLoading ? "提交中…" : "同意"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {!isTreasure && (
           <div className="mt-6 rounded-lg border border-[#2563eb]/30 bg-white p-4">
