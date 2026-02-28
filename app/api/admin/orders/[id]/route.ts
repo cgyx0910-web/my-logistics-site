@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseFromRequest, toProfileId, type ServerSupabaseClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 async function requireAdmin(supabase: ServerSupabaseClient) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return { error: "未登录", status: 401 as const };
@@ -35,7 +37,15 @@ export async function GET(
     .eq("order_id", id)
     .order("created_at", { ascending: false });
 
-  return NextResponse.json({ order, logs: logs ?? [] });
+  const row = order as Record<string, unknown>;
+  return NextResponse.json({
+    order: {
+      ...row,
+      cancel_requested_by: row.cancel_requested_by ?? null,
+      cancel_requested_at: row.cancel_requested_at ?? null,
+    },
+    logs: logs ?? [],
+  });
 }
 
 /** 积分公式：发放积分 = floor(shipping_fee × 1)，1:1 向下取整 */

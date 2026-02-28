@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseFromRequest } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 /** 用户端：获取自己某订单的轨迹（按时间倒序，最新在前） */
 export async function GET(
   request: Request,
