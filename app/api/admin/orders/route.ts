@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   let query = supabase
     .from("shipping_orders")
-    .select("id, user_id, tracking_number, status, shipping_fee, points_awarded, payment_proof_url, created_at, cargo_details, order_type")
+    .select("id, user_id, tracking_number, status, shipping_fee, points_awarded, payment_proof_url, created_at, cargo_details, order_type, cancel_requested_by")
     .order("created_at", { ascending: false });
 
   if (tracking) query = query.ilike("tracking_number", `%${tracking}%`);
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 
   const { data: ordersData, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  type OrderRow = { id: string; user_id: string; tracking_number: string | null; status: string; shipping_fee: number; points_awarded: number | null; payment_proof_url: string | null; created_at: string; cargo_details: string | null; order_type: string };
+  type OrderRow = { id: string; user_id: string; tracking_number: string | null; status: string; shipping_fee: number; points_awarded: number | null; payment_proof_url: string | null; created_at: string; cargo_details: string | null; order_type: string; cancel_requested_by: string | null };
   const orders = (ordersData ?? []) as OrderRow[];
 
   const userIds = [...new Set(orders.map((o) => o.user_id).filter(Boolean))];
@@ -56,6 +56,7 @@ export async function GET(request: Request) {
     created_at: o.created_at,
     cargo_details: o.cargo_details ?? null,
     order_type: o.order_type ?? "logistics",
+    cancel_requested_by: o.cancel_requested_by ?? null,
     user_email: emailByUserId.get(o.user_id) ?? "",
   }));
   return NextResponse.json(list);

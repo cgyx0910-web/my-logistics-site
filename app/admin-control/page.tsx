@@ -37,6 +37,7 @@ const STATUS_OPTIONS = [
   "已入库",
   "运输中",
   "已完成",
+  "已取消",
 ];
 
 const STATUS_TAG_CLASS: Record<string, string> = {
@@ -48,6 +49,7 @@ const STATUS_TAG_CLASS: Record<string, string> = {
   已入库: "bg-sky-100 text-sky-800 border-sky-200",
   运输中: "bg-indigo-100 text-indigo-800 border-indigo-200",
   已完成: "bg-green-100 text-green-800 border-green-200",
+  已取消: "bg-slate-200 text-slate-700 border-slate-300",
 };
 
 type OrderRow = {
@@ -61,6 +63,7 @@ type OrderRow = {
   created_at: string;
   cargo_details: string | null;
   order_type?: string;
+  cancel_requested_by?: string | null;
 };
 
 export default function AdminControlPage() {
@@ -575,7 +578,10 @@ export default function AdminControlPage() {
             </thead>
             <tbody>
               {orders.map((o) => (
-                <tr key={o.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                <tr
+                  key={o.id}
+                  className={`border-b border-slate-100 hover:bg-slate-50/50 ${o.cancel_requested_by === "customer" ? "bg-amber-50/80" : ""}`}
+                >
                   <td className="px-3 py-2 font-mono text-slate-700" title={o.id ?? ""}>
                     {o.id ? `${String(o.id).slice(0, 8)}…` : "—"}
                   </td>
@@ -592,11 +598,18 @@ export default function AdminControlPage() {
                     </span>
                   </td>
                   <td className="px-3 py-2">
-                    <span
-                      className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${STATUS_TAG_CLASS[o.status] ?? "bg-slate-100 text-slate-700 border-slate-200"}`}
-                    >
-                      {o.status}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      {o.cancel_requested_by === "customer" && (
+                        <span className="inline-flex w-fit rounded bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white">
+                          客户申请取消
+                        </span>
+                      )}
+                      <span
+                        className={`inline-flex w-fit rounded-full border px-2.5 py-0.5 text-xs font-medium ${STATUS_TAG_CLASS[o.status] ?? "bg-slate-100 text-slate-700 border-slate-200"}`}
+                      >
+                        {o.status}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-3 py-2">¥{Number(o.shipping_fee).toFixed(2)}</td>
                   <td className="px-3 py-2">

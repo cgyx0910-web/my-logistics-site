@@ -23,12 +23,14 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [adminPendingCount, setAdminPendingCount] = useState<number>(0);
+  const [adminCancelRequestCount, setAdminCancelRequestCount] = useState<number>(0);
   const { user, profile, loading, signOut, refreshProfile, getAccessToken } = useAuth();
   const { openAuthModal } = useAuthModal();
 
   useEffect(() => {
     if (!user || profile?.role !== "admin") {
       setAdminPendingCount(0);
+      setAdminCancelRequestCount(0);
       return;
     }
     let cancelled = false;
@@ -37,12 +39,18 @@ export default function Navbar() {
       fetch("/api/admin/orders-count", {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then((res) => (res.ok ? res.json() : { pendingCount: 0 }))
+        .then((res) => (res.ok ? res.json() : { pendingCount: 0, cancelRequestCount: 0 }))
         .then((data) => {
-          if (!cancelled) setAdminPendingCount(data.pendingCount ?? 0);
+          if (!cancelled) {
+            setAdminPendingCount(data.pendingCount ?? 0);
+            setAdminCancelRequestCount(data.cancelRequestCount ?? 0);
+          }
         })
         .catch(() => {
-          if (!cancelled) setAdminPendingCount(0);
+          if (!cancelled) {
+            setAdminPendingCount(0);
+            setAdminCancelRequestCount(0);
+          }
         });
     });
     return () => {
@@ -104,6 +112,14 @@ export default function Navbar() {
                   aria-label={t("pendingOrders", { count: adminPendingCount })}
                 >
                   {adminPendingCount > 99 ? "99+" : adminPendingCount}
+                </span>
+              )}
+              {adminCancelRequestCount > 0 && (
+                <span
+                  className="flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-bold text-white"
+                  title="客户申请取消订单数"
+                >
+                  {adminCancelRequestCount > 99 ? "99+" : adminCancelRequestCount} 取消
                 </span>
               )}
             </Link>
@@ -196,11 +212,18 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span>{t("adminControl")}</span>
-                  {adminPendingCount > 0 && (
-                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                      {adminPendingCount > 99 ? "99+" : adminPendingCount}
-                    </span>
-                  )}
+                  <span className="flex items-center gap-1.5">
+                    {adminPendingCount > 0 && (
+                      <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                        {adminPendingCount > 99 ? "99+" : adminPendingCount}
+                      </span>
+                    )}
+                    {adminCancelRequestCount > 0 && (
+                      <span className="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
+                        {adminCancelRequestCount > 99 ? "99+" : adminCancelRequestCount} 取消
+                      </span>
+                    )}
+                  </span>
                 </Link>
               </li>
             )}

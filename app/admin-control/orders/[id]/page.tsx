@@ -259,6 +259,12 @@ export default function AdminOrderDetailPage() {
         返回订单列表
       </Link>
 
+      {order.cancel_requested_by === "customer" && (
+        <div className="mt-6 rounded-xl border-2 border-amber-400 bg-amber-50 p-4">
+          <p className="text-sm font-semibold text-amber-900">客户已申请取消此订单，请在下方「订单取消」处选择同意或不同意。</p>
+        </div>
+      )}
+
       <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold text-slate-800">订单信息</h2>
         <p className="mt-2 text-sm text-slate-600">
@@ -496,6 +502,7 @@ export default function AdminOrderDetailPage() {
               <option value="已入库">已入库</option>
               <option value="运输中">运输中</option>
               <option value="已完成">已完成</option>
+              <option value="已取消">已取消</option>
             </select>
           </div>
           <button

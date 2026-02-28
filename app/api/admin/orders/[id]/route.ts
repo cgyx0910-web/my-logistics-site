@@ -84,7 +84,7 @@ export async function PATCH(
 
   const newStatus = body.status?.trim();
   if (newStatus) {
-    const allowed = ["待确认", "待付款", "已支付", "已入库", "运输中", "已完成"];
+    const allowed = ["待确认", "待付款", "已支付", "已入库", "运输中", "已完成", "已取消"];
     if (!allowed.includes(newStatus)) return NextResponse.json({ error: "无效状态" }, { status: 400 });
     updates.status = newStatus;
   }

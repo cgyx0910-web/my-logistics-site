@@ -9,17 +9,23 @@ async function requireAdmin(supabase: ServerSupabaseClient) {
   return { user };
 }
 
-/** 返回待确认订单数，用于后台管理角标 */
+/** 返回待确认订单数、客户申请取消数，用于后台管理角标与提示 */
 export async function GET(request: Request) {
   const supabase = createServerSupabaseFromRequest(request);
   const auth = await requireAdmin(supabase);
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { count, error } = await supabase
-    .from("shipping_orders")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "待确认");
+  const [pendingRes, cancelRes] = await Promise.all([
+    supabase.from("shipping_orders").select("id", { count: "exact", head: true }).eq("status", "待确认"),
+    supabase
+      .from("shipping_orders")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "待确认")
+      .eq("cancel_requested_by", "customer"),
+  ]);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ pendingCount: count ?? 0 });
+  return NextResponse.json({
+    pendingCount: pendingRes.count ?? 0,
+    cancelRequestCount: cancelRes.count ?? 0,
+  });
 }
