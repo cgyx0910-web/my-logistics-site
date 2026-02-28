@@ -148,7 +148,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const toUpsert = [
+  const toUpsertRaw = [
     ...toAdd.map((r) => ({
       country: r.country,
       shipping_method: r.shipping_method,
@@ -168,6 +168,14 @@ export async function POST(request: Request) {
       delivery_days: r.new_row.delivery_days ?? null,
     })),
   ];
+
+  const conflictKey = (r: { country: string; shipping_method: string; min_weight: number }) =>
+    `${r.country}|${r.shipping_method}|${r.min_weight}`;
+  const byKey = new Map<string, (typeof toUpsertRaw)[0]>();
+  for (const r of toUpsertRaw) {
+    byKey.set(conflictKey(r), r);
+  }
+  const toUpsert = Array.from(byKey.values());
 
   if (toUpsert.length === 0) {
     return NextResponse.json({

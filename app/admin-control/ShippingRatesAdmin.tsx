@@ -184,6 +184,15 @@ export default function ShippingRatesAdmin() {
   const [logs, setLogs] = useState<{ id: string; operated_at: string; action: string; countries: string[] | null; summary: unknown }[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
+  const [singleCountry, setSingleCountry] = useState("");
+  const [singleMethod, setSingleMethod] = useState("");
+  const [singleUnitPrice, setSingleUnitPrice] = useState("");
+  const [singleMinWeight, setSingleMinWeight] = useState("0");
+  const [singleMaxWeight, setSingleMaxWeight] = useState("");
+  const [singleDeliveryDays, setSingleDeliveryDays] = useState("");
+  const [singleCurrency, setSingleCurrency] = useState("CNY");
+  const [singleSaving, setSingleSaving] = useState(false);
+
   const fetchLogs = useCallback(async () => {
     const token = await getAccessToken();
     const res = await fetch(`${typeof window !== "undefined" ? window.location.origin : ""}/api/admin/shipping-rates?logs=1`, {
@@ -347,7 +356,7 @@ export default function ShippingRatesAdmin() {
         setFileParseErrors([]);
         await fetchRates();
         setTab("list");
-        toast.success(`已更新：新增 ${added} 条，修改 ${updated} 条。已切换到价格表`);
+        toast.success(`已更新：新增 ${added} 条，修改 ${updated} 条`);
       } else {
         toast.error(data.error ?? "执行失败");
       }
@@ -452,14 +461,78 @@ export default function ShippingRatesAdmin() {
     toast.success("已导出当前运费表");
   }, [getAccessToken, toast]);
 
+  const handleSingleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const country = singleCountry.trim().toLowerCase();
+    const shipping_method = singleMethod.trim();
+    const unit_price = parseFloat(singleUnitPrice);
+    const min_weight = parseFloat(singleMinWeight) || 0;
+    const max_weight = singleMaxWeight.trim() === "" ? null : parseFloat(singleMaxWeight);
+    const delivery_days = singleDeliveryDays.trim() || null;
+    const currency = singleCurrency.trim() || "CNY";
+    if (!country || !shipping_method) {
+      toast.error("请填写国家和运输方式");
+      return;
+    }
+    if (Number.isNaN(unit_price) || unit_price <= 0) {
+      toast.error("请填写有效单价（正数）");
+      return;
+    }
+    if (Number.isNaN(min_weight) || min_weight < 0) {
+      toast.error("起运重不能为负数");
+      return;
+    }
+    setSingleSaving(true);
+    const token = await getAccessToken();
+    try {
+      const res = await fetch(`${window.location.origin}/api/admin/shipping-rates`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          dry_run: false,
+          rows: [
+            {
+              rowIndex: 1,
+              country,
+              shipping_method,
+              unit_price,
+              min_weight,
+              max_weight: max_weight ?? "",
+              currency,
+              delivery_days,
+            },
+          ],
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await fetchRates();
+        setSingleCountry("");
+        setSingleMethod("");
+        setSingleUnitPrice("");
+        setSingleMinWeight("0");
+        setSingleMaxWeight("");
+        setSingleDeliveryDays("");
+        toast.success("已保存，试算页已更新");
+      } else {
+        toast.error(data.error ?? "保存失败");
+      }
+    } finally {
+      setSingleSaving(false);
+    }
+  };
+
   return (
     <section className="mt-12">
       <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
         <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-        全球运费批量管理中心
+        全球运费管理
       </h2>
       <p className="mt-1 text-sm text-slate-600">
-        CSV 拖拽/选择上传（表头 country, method, price_per_kg, min_weight, estimated_days）→ 变更预览（绿新增/橙变动/红错误）→ 确认更新 Upsert；下载空白模板/导出当前表；全路线调价与操作历史
+        此处维护的数据与前台「运费试算」实时同步。支持单条录入、表格内改价、CSV 批量上传、全路线调价。
       </p>
 
       <div className="mt-3 flex gap-2 border-b border-slate-200">
@@ -495,8 +568,95 @@ export default function ShippingRatesAdmin() {
 
       {tab === "list" && (
         <div className="mt-4 space-y-4">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+            <h3 className="text-sm font-semibold text-slate-800">单条录入</h3>
+            <p className="mt-1 text-xs text-slate-600">新增或覆盖同国家+渠道+起运重的路线，保存后试算页即时生效。</p>
+            <form onSubmit={handleSingleSave} className="mt-3 flex flex-wrap items-end gap-3">
+              <div className="min-w-[80px]">
+                <label className="mb-1 block text-xs font-medium text-slate-700">国家</label>
+                <input
+                  type="text"
+                  value={singleCountry}
+                  onChange={(e) => setSingleCountry(e.target.value)}
+                  placeholder="如 tw, th"
+                  className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-800"
+                />
+              </div>
+              <div className="min-w-[100px]">
+                <label className="mb-1 block text-xs font-medium text-slate-700">运输方式</label>
+                <input
+                  type="text"
+                  value={singleMethod}
+                  onChange={(e) => setSingleMethod(e.target.value)}
+                  placeholder="如 空运特快"
+                  className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-800"
+                />
+              </div>
+              <div className="min-w-[80px]">
+                <label className="mb-1 block text-xs font-medium text-slate-700">单价(元/kg)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={singleUnitPrice}
+                  onChange={(e) => setSingleUnitPrice(e.target.value)}
+                  placeholder="25"
+                  className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-800"
+                />
+              </div>
+              <div className="min-w-[70px]">
+                <label className="mb-1 block text-xs font-medium text-slate-700">起运重(kg)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={singleMinWeight}
+                  onChange={(e) => setSingleMinWeight(e.target.value)}
+                  className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-800"
+                />
+              </div>
+              <div className="min-w-[80px]">
+                <label className="mb-1 block text-xs font-medium text-slate-700">重量上限(kg)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={singleMaxWeight}
+                  onChange={(e) => setSingleMaxWeight(e.target.value)}
+                  placeholder="留空不限"
+                  className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-800"
+                />
+              </div>
+              <div className="min-w-[80px]">
+                <label className="mb-1 block text-xs font-medium text-slate-700">时效</label>
+                <input
+                  type="text"
+                  value={singleDeliveryDays}
+                  onChange={(e) => setSingleDeliveryDays(e.target.value)}
+                  placeholder="3-5天"
+                  className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-800"
+                />
+              </div>
+              <div className="min-w-[60px]">
+                <label className="mb-1 block text-xs font-medium text-slate-700">币种</label>
+                <input
+                  type="text"
+                  value={singleCurrency}
+                  onChange={(e) => setSingleCurrency(e.target.value)}
+                  className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-800"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={singleSaving}
+                className="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {singleSaving ? "保存中…" : "保存"}
+              </button>
+            </form>
+          </div>
           <p className="text-sm text-slate-600">
-            双击「价格(元/kg)」或「时效」可编辑并保存；起运重/重量上限需通过 CSV 上传或调价修改。
+            表格内：双击「价格」或「时效」可改并保存；国家/渠道/起运重需用下方 CSV 或单条录入。
           </p>
           <div className="flex justify-end">
             <button
@@ -599,7 +759,7 @@ export default function ShippingRatesAdmin() {
 
           {/* 拖拽上传区域 Dropzone */}
           <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-6">
-            <label className="mb-2 block text-sm font-medium text-slate-700">上传 CSV（papaparse 解析）</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">上传 CSV</label>
             <div
               onDragOver={(e) => { e.preventDefault(); setDropzoneActive(true); }}
               onDragLeave={() => setDropzoneActive(false)}
@@ -616,9 +776,9 @@ export default function ShippingRatesAdmin() {
               />
               <Upload className="h-10 w-10 text-slate-400" />
               <p className="mt-2 text-sm text-slate-600">
-                {dropzoneActive ? "松开以放入文件" : "拖拽 CSV 到此处，或点击选择文件"}
+                {dropzoneActive ? "松开以放入文件" : "拖拽或点击选择 CSV"}
               </p>
-              <p className="mt-1 text-xs text-slate-500">表头：country, method, price_per_kg, min_weight, estimated_days</p>
+              <p className="mt-1 text-xs text-slate-500">首行为表头，支持列名：country, method, price_per_kg, min_weight, estimated_days</p>
             </div>
           </div>
 
@@ -637,7 +797,7 @@ export default function ShippingRatesAdmin() {
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               <Download className="h-4 w-4" />
-              下载示例（含示例行）
+              下载示例
             </button>
             <button
               type="button"
@@ -663,7 +823,7 @@ export default function ShippingRatesAdmin() {
           {headers.length > 0 && (
             <>
               <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-                <p className="mb-2 text-sm font-medium text-slate-700">智能匹配表头（可手动调整）</p>
+                <p className="mb-2 text-sm font-medium text-slate-700">表头映射</p>
                 <div className="flex flex-wrap gap-3">
                   {headers.map((h, i) => (
                     <div key={i} className="flex items-center gap-2">
@@ -691,7 +851,7 @@ export default function ShippingRatesAdmin() {
                   className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   <Upload className="h-4 w-4" />
-                  预览更新（Dry Run）
+                  预览变更
                 </button>
               </div>
             </>
@@ -699,11 +859,11 @@ export default function ShippingRatesAdmin() {
 
           {dryRunResult && (
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <h3 className="mb-3 text-base font-semibold text-slate-800">变更预览表格</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-800">变更预览</h3>
               <div className="mb-3 flex flex-wrap gap-3">
-                <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">新增（绿）</span>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">价格变动（橙）</span>
-                <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">数据错误（红）</span>
+                <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">新增</span>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">改价</span>
+                <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">错误</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[520px] text-left text-sm">
@@ -762,7 +922,7 @@ export default function ShippingRatesAdmin() {
                   关闭
                 </button>
                 {dryRunResult.errors.length > 0 ? (
-                  <span className="text-sm text-red-600">请修正错误行后重新上传并预览，再确认执行</span>
+                  <span className="text-sm text-red-600">存在错误行，请修正 CSV 后重新上传</span>
                 ) : (
                   <button
                     type="button"
@@ -782,6 +942,7 @@ export default function ShippingRatesAdmin() {
 
       {tab === "adjust" && (
         <div className="mt-4 space-y-4">
+          <p className="text-sm text-slate-600">按百分比批量调整单价，可限定国家或渠道。</p>
           <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">涨跌幅（%）</label>
@@ -871,7 +1032,9 @@ export default function ShippingRatesAdmin() {
       )}
 
       {tab === "logs" && (
-        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="mt-4 space-y-2">
+          <p className="text-sm text-slate-600">最近批量上传与调价记录。</p>
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
           {logsLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
@@ -912,6 +1075,7 @@ export default function ShippingRatesAdmin() {
               </tbody>
             </table>
           )}
+          </div>
         </div>
       )}
 
@@ -923,12 +1087,12 @@ export default function ShippingRatesAdmin() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-800">数据异常行（上传已完成）</h3>
+              <h3 className="text-lg font-semibold text-slate-800">部分行异常</h3>
               <button type="button" onClick={() => setErrorRowsModal(null)} className="rounded p-1 text-slate-500 hover:bg-slate-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="mt-2 text-sm text-slate-600">以下行存在非法字符或空行等错误，已跳过；其余行已写入。</p>
+            <p className="mt-2 text-sm text-slate-600">以下行已跳过，其余已写入。</p>
             <ul className="mt-3 max-h-60 list-inside list-disc overflow-y-auto rounded bg-red-50 p-3 text-sm text-red-800">
               {errorRowsModal.map((e, i) => (
                 <li key={i}>第 {e.rowIndex} 行：{e.reason}</li>
