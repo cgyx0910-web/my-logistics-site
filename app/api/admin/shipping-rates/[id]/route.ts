@@ -73,7 +73,7 @@ export async function DELETE(
   const { id } = await params;
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 });
 
-  const { error } = await (supabase as { from: (t: string) => { delete: () => { eq: (col: string, val: string) => Promise<{ error: { message?: string } | null }> } } })
+  const { error } = await (supabase as any)
     .from("shipping_rates")
     .delete()
     .eq("id", id);
